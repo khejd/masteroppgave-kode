@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f7b2d28ef94ac54bb5eb4d84b6e462e, type: 3}
+  m_Name: Concrete
+  m_EditorClassIdentifier: 
+  name: Concrete
+  nrc: 0.04
+  material: {fileID: 2100000, guid: 821383397b2623647a84b9d4a59c12b9, type: 2}
