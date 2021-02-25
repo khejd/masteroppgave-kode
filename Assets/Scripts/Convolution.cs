@@ -53,6 +53,7 @@ public class Convolution : MonoBehaviour
             rir = GameObject.Find("Room Impulse Response");
         else
         {
+            //rirScript = rir.GetComponent<RoomImpulseResponse>();
             rirScript = rir.GetComponent<RoomImpulseResponse>();
 
             if (rirScript.newImpulseResponse)

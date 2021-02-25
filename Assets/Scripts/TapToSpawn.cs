@@ -17,17 +17,18 @@ public class TapToSpawn : MonoBehaviour
     {
         Transform room = GameObject.FindGameObjectWithTag("Room").transform;
         Transform player = GameObject.FindGameObjectWithTag("MainCamera").transform;
-        Vector3 position = player.position + transform.forward;
-        if (Equals(prefab.name, "Carpet"))
-            position = player.position - 0.9f * transform.up * room.localScale.y / 2 + transform.forward;
-        if (Equals(prefab.name, "Audio Source"))
+        Vector3 position = player.position + 1.5f * transform.forward * Mathf.Cos(player.localEulerAngles.y * Mathf.Deg2Rad) + 1.5f * transform.right * Mathf.Sin(player.localEulerAngles.y * Mathf.Deg2Rad);
+        if (Equals(prefab.name, "Carpet") || Equals(prefab.name, "Door"))
+            position -=  0.8f * transform.up * room.localScale.y / 2;
+        if (Equals(prefab.tag, "Audio Source"))
         {
             Instantiate(prefab, position, prefab.transform.rotation);
+            GameObject.Find("Convolution").GetComponent<ConvolutionJob>().AddAudioSource(prefab.GetComponent<AudioSource>().clip);
             return;
         }
 
         GameObject spawnedObject = Instantiate(prefab, position, prefab.transform.rotation, room);
-        Vector3 newScale = new Vector3(spawnedObject.transform.localScale.x / room.localScale.x, spawnedObject.transform.localScale.y, spawnedObject.transform.localScale.z / room.localScale.z);
+        Vector3 newScale = new Vector3(spawnedObject.transform.localScale.x / room.localScale.x, spawnedObject.transform.localScale.y / room.localScale.y, spawnedObject.transform.localScale.z / room.localScale.z);
         spawnedObject.transform.localScale = newScale;
     }
 }

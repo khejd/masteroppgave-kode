@@ -11,6 +11,8 @@ public class DropdownAcousticElement : MonoBehaviour
     public AcousticElement plywood;
     public AcousticElement concrete;
     public AcousticElement carpet;
+    public AcousticElement brick;
+    public AcousticElement metal;
 
     private TMP_Dropdown frontWallDropdown;
     private TMP_Dropdown backWallDropdown;
@@ -41,9 +43,6 @@ public class DropdownAcousticElement : MonoBehaviour
 
     private void ChangeWallElement(string wallName, int value)
     {
-
-        Debug.Log(wallName + " " + GameObject.Find(wallName).name);
-
         switch (value)
         {
             case 0:
@@ -54,6 +53,9 @@ public class DropdownAcousticElement : MonoBehaviour
                 break;
             case 2:
                 GameObject.Find(wallName).GetComponent<AcousticElementDisplay>().acousticElement = concrete;
+                break;
+            case 3:
+                GameObject.Find(wallName).GetComponent<AcousticElementDisplay>().acousticElement = brick;
                 break;
             default:
                 break;
@@ -75,6 +77,9 @@ public class DropdownAcousticElement : MonoBehaviour
                 break;
             case 3:
                 GameObject.Find("Floor").GetComponent<AcousticElementDisplay>().acousticElement = carpet;
+                break;
+            case 4:
+                GameObject.Find("Floor").GetComponent<AcousticElementDisplay>().acousticElement = metal;
                 break;
             default:
                 break;

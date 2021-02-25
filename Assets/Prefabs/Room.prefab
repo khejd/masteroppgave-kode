@@ -290,7 +290,7 @@ MonoBehaviour:
   onDeselect:
     m_PersistentCalls:
       m_Calls: []
-  isSelected: 1
+  isSelected: 0
 --- !u!114 &783884985282596460
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -470,6 +470,8 @@ MonoBehaviour:
   plywood: {fileID: 11400000, guid: 8e76c5b58dd36134b8db160044efcf5d, type: 2}
   concrete: {fileID: 11400000, guid: 4012c0ca15bb7ee468ccb57d04bd9c15, type: 2}
   carpet: {fileID: 11400000, guid: 234aef90c3b2d3a4792bb1a8a3b2490c, type: 2}
+  brick: {fileID: 11400000, guid: 5b877757ecf1ead4e9b821dea56c5f96, type: 2}
+  metal: {fileID: 11400000, guid: 0df0866452fcd5f45abb5aae86c6f0df, type: 2}
 --- !u!114 &3794639504933880352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -713,6 +715,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7636872307937573623, guid: 0c2da33e914fc4445a6e336e8b44ff51,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.501
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0c2da33e914fc4445a6e336e8b44ff51, type: 3}

@@ -5,6 +5,7 @@ using UnityEditor;
 using System.IO;
 using System.Diagnostics;
 using TMPro;
+
 public class RoomImpulseResponse : MonoBehaviour
 {
     /*
@@ -562,7 +563,7 @@ public class RoomImpulseResponse : MonoBehaviour
             roomImpulseResponse = imp;
             newImpulseResponse = true;
             
-            /*
+            
             string s = "";
             foreach (float f in imp)
             {
@@ -570,8 +571,7 @@ public class RoomImpulseResponse : MonoBehaviour
                 s += temp + ";";
             }
             File.WriteAllText(Application.dataPath + "/output.txt", s);
-            */
+            
         }
     }
-
 }
