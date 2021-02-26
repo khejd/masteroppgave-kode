@@ -17,9 +17,9 @@ public class TapToSpawn : MonoBehaviour
     {
         Transform room = GameObject.FindGameObjectWithTag("Room").transform;
         Transform player = GameObject.FindGameObjectWithTag("MainCamera").transform;
-        Vector3 position = player.position + 1.5f * transform.forward * Mathf.Cos(player.localEulerAngles.y * Mathf.Deg2Rad) + 1.5f * transform.right * Mathf.Sin(player.localEulerAngles.y * Mathf.Deg2Rad);
+        Vector3 position = player.position + 1.5f * transform.forward * Mathf.Cos((player.localEulerAngles.y + 3) * Mathf.Deg2Rad) + 1.5f * transform.right * Mathf.Sin(player.localEulerAngles.y * Mathf.Deg2Rad);
         if (Equals(prefab.name, "Carpet") || Equals(prefab.name, "Door"))
-            position -=  0.8f * transform.up * room.localScale.y / 2;
+            position -=  0.5f * transform.up * room.localScale.y / 2;
         if (Equals(prefab.tag, "Audio Source"))
         {
             Instantiate(prefab, position, prefab.transform.rotation);

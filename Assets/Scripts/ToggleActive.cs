@@ -8,4 +8,9 @@ public class ToggleActive : MonoBehaviour
     {
         this.gameObject.SetActive(!this.gameObject.activeSelf);
     }
+
+    public void SetObjectActive()
+    {
+        this.gameObject.SetActive(true);
+    }
 }

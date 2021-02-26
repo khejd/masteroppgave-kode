@@ -251,8 +251,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2218081498424763247}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 3, y: 2, z: 6}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 3, y: 3, z: 6}
   m_Children:
   - {fileID: 2218081496996601554}
   - {fileID: 677244522329217344}
@@ -472,6 +472,7 @@ MonoBehaviour:
   carpet: {fileID: 11400000, guid: 234aef90c3b2d3a4792bb1a8a3b2490c, type: 2}
   brick: {fileID: 11400000, guid: 5b877757ecf1ead4e9b821dea56c5f96, type: 2}
   metal: {fileID: 11400000, guid: 0df0866452fcd5f45abb5aae86c6f0df, type: 2}
+  acousticRoofPanel: {fileID: 11400000, guid: e87b385ac56428f4bbbc3c788b792d5f, type: 2}
 --- !u!114 &3794639504933880352
 MonoBehaviour:
   m_ObjectHideFlags: 0

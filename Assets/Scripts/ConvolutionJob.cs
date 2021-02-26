@@ -174,7 +174,7 @@ public class ConvolutionJob : MonoBehaviour
         [ReadOnly] public NativeArray<float> signal;
         public NativeArray<float> conv;
 
-        [MethodImpl(MethodImplOptions.NoInlining)] private static int BitReverse(int n, int bits)
+        private static int BitReverse(int n, int bits)
         {
             int reversedN = n;
             int count = bits - 1;
@@ -189,7 +189,7 @@ public class ConvolutionJob : MonoBehaviour
 
             return ((reversedN << count) & ((1 << bits) - 1));
         }
-        unsafe private void FFT([NoAlias] ref Complex* buffer, int length, bool inverse = false)
+        private void FFT(ref NativeArray<Complex> buffer, int length, bool inverse = false)
         {
             int bits = (int)math.log2(length);
 
@@ -233,7 +233,7 @@ public class ConvolutionJob : MonoBehaviour
                     buffer[i] /= length;
             }
         }
-        [MethodImpl(MethodImplOptions.NoInlining)] unsafe void Convolve(NativeArray<float> imp, NativeArray<float> signal)
+        private void Convolve(ref NativeArray<float> imp, ref NativeArray<float> signal)
         {
             int L = imp.Length;
             int Nsig = signal.Length;
@@ -243,18 +243,18 @@ public class ConvolutionJob : MonoBehaviour
             int R = M;
             int Nframes = 1 + (int)math.floor((Nsig - M) / R);
 
-            Complex* impZeroPadded = stackalloc Complex[Nfft];
-            //NativeArray<Complex> impZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            //Complex* impZeroPadded = stackalloc Complex[Nfft];
+            NativeArray<Complex> impZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < Nfft; i++)
                 impZeroPadded[i] = i < imp.Length ? new Complex(imp[i]) : new Complex();
             
             FFT(ref impZeroPadded, Nfft);
 
-            Complex* signalZeroPadded = stackalloc Complex[Nfft];
-            Complex* convFFT = stackalloc Complex[Nfft];
+            //Complex* signalZeroPadded = stackalloc Complex[Nfft];
+            //Complex* convFFT = stackalloc Complex[Nfft];
 
-            //NativeArray<Complex> signalZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            //NativeArray<Complex> convFFT = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Complex> signalZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Complex> convFFT = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int m = 0; m < Nframes; m++)
             {
                 int startIndex = m * R;
@@ -274,13 +274,13 @@ public class ConvolutionJob : MonoBehaviour
                 }
 
             }
-            //impZeroPadded.Dispose();
-            //signalZeroPadded.Dispose();
-            //convFFT.Dispose();
+            impZeroPadded.Dispose();
+            signalZeroPadded.Dispose();
+            convFFT.Dispose();
         }
         public void Execute()
         {
-            Convolve(imp, signal);
+            Convolve(ref imp, ref signal);
         }
     }
 # endif
@@ -319,6 +319,8 @@ public class ConvolutionJob : MonoBehaviour
         audioSamples.Add(audioSample);
         signals.Add(new NativeArray<float>(audioSample, Allocator.Persistent));
         offsetSamples.Add(0);
+
+        rirScript.ToggleCalculateImpulseResponse();
     }
 
     private void Update()
@@ -379,7 +381,6 @@ public class ConvolutionJob : MonoBehaviour
             {
                 jobHandles[i].Complete();
                 rirScript.impulseResponses[i].Dispose();
-                //signals[i].Dispose();
 
                 float[] mixedAudio = convs[i].ToArray();
                 float multiplicationFactor = Mathf.Max(audioSamples[i]) / Mathf.Max(mixedAudio);

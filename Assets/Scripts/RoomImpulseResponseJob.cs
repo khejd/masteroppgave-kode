@@ -88,7 +88,6 @@ public class RoomImpulseResponseJob : MonoBehaviour
         public float3 receiverPos, sourcePos;
         public Room room;
         public NativeArray<float> impulseResponse;
-
         private static float Sinc(float x)
         {
             if (x == 0)
@@ -96,7 +95,6 @@ public class RoomImpulseResponseJob : MonoBehaviour
             else
                 return math.sin(x) / x;
         }
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static float SimMicrophone(float x, float y, float z, float2 microphone_angle, MicrophoneType mtype)
         {
             if (mtype == MicrophoneType.Bidirectional || mtype == MicrophoneType.Cardioid || mtype == MicrophoneType.Subcardioid || mtype == MicrophoneType.Hypercardioid)
@@ -143,8 +141,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
                 return 1;
             }
         }
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private unsafe void ComputeRIR(float fs, float3 rr, int nMicrophones, float3 ss, float3 LL, int nSamples, float* beta, MicrophoneType microphone_type, int nOrder, float2 microphone_angle, int isHighPassFilter)
+        private unsafe void ComputeRIR(float fs, float3 rr, int nMicrophones, float3 ss, float3 LL, int nSamples, NativeArray<float> beta, MicrophoneType microphone_type, int nOrder, float2 microphone_angle, int isHighPassFilter)
         {
             // Temporary variables and constants (high-pass filter)
             float c = 343;
@@ -154,12 +151,21 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float B2 = -R1 * R1;
             float A1 = -(1 + R1);
             float X0;
-            float* Y = stackalloc float[3];
+            //float* Y = stackalloc float[3];
+            float3 Y = new float3();
 
             // Temporary variables and constants (image-method)
             float Fc = 0.5f; // The normalized cut-off frequency equals (fs/2) / fs = 0.5
             int Tw = (int)(2 * math.round(0.004f * fs)); // The width of the low-pass FIR equals 8 ms
             float cTs = c / fs;
+            NativeArray<float> LPI = new NativeArray<float>(Tw, Allocator.Temp);
+            float3 r = new float3();
+            float3 s = new float3();
+            float3 L = new float3();
+            float3 Rm = new float3();
+            float3 Rp_plus_Rm = new float3();
+            float3 refl = new float3();
+            /*
             float* LPI = stackalloc float[Tw];
             float* r = stackalloc float[3];
             float* s = stackalloc float[3];
@@ -167,6 +173,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float* Rm = stackalloc float[3];
             float* Rp_plus_Rm = stackalloc float[3];
             float* refl = stackalloc float[3];
+            */
             float fdist, dist;
             float gain;
             int startPosition;
@@ -261,8 +268,8 @@ public class RoomImpulseResponseJob : MonoBehaviour
                     }
                 }
             }
-            //LPI.Dispose();
-            //beta.Dispose();
+            LPI.Dispose();
+            beta.Dispose();
         }
         private unsafe void RirGenerator(float3 receiverPos, float3 sourcePos, Room r)
         {
@@ -275,7 +282,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float3 room_dimensions = new float3(r.dimension.x, r.dimension.y, r.dimension.z);
             if (!r.coefficients.isReflection)
                 r.coefficients.ToReflection();
-            float* beta = stackalloc float[6];
+            NativeArray<float> beta = new NativeArray<float>(6, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             beta[0] = r.coefficients.frontWall;
             beta[1] = r.coefficients.backWall;
             beta[2] = r.coefficients.leftWall;

@@ -13,6 +13,7 @@ public class DropdownAcousticElement : MonoBehaviour
     public AcousticElement carpet;
     public AcousticElement brick;
     public AcousticElement metal;
+    public AcousticElement acousticRoofPanel;
 
     private TMP_Dropdown frontWallDropdown;
     private TMP_Dropdown backWallDropdown;
@@ -95,6 +96,9 @@ public class DropdownAcousticElement : MonoBehaviour
                 break;
             case 1:
                 GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = concrete;
+                break;
+            case 2:
+                GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = acousticRoofPanel;
                 break;
             default:
                 break;
