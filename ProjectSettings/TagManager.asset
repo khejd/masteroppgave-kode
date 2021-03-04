@@ -15,6 +15,7 @@ TagManager:
   - Floor
   - Ceiling
   - Acoustic Element
+  - Object
   layers:
   - Default
   - TransparentFX

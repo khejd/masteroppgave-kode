@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Window
   m_EditorClassIdentifier: 
   name: Window
-  nrc: 0.1
+  nrc: 0.02
   material: {fileID: 2100000, guid: 3cc62fdf6f49b784a98843f098ced17d, type: 2}

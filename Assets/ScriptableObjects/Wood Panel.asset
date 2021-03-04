@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wood Panel
   m_EditorClassIdentifier: 
   name: Wood Panel
-  nrc: 0.3
+  nrc: 0.4
   material: {fileID: 2100000, guid: a2504bafb596547478a7bc624134fb02, type: 2}

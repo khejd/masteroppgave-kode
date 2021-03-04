@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Metal
   m_EditorClassIdentifier: 
   name: Metal
-  nrc: 0.2
+  nrc: 0.1
   material: {fileID: 2100000, guid: a1fde164ce760c84f81b31a533826b83, type: 2}

@@ -92,8 +92,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         {
             if (x == 0)
                 return 1.0f;
-            else
-                return math.sin(x) / x;
+            return math.sin(x) / x;
         }
         private static float SimMicrophone(float x, float y, float z, float2 microphone_angle, MicrophoneType mtype)
         {
@@ -137,9 +136,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
                 return gain;
             }
             else
-            {
                 return 1;
-            }
         }
         private unsafe void ComputeRIR(float fs, float3 rr, int nMicrophones, float3 ss, float3 LL, int nSamples, NativeArray<float> beta, MicrophoneType microphone_type, int nOrder, float2 microphone_angle, int isHighPassFilter)
         {
@@ -273,7 +270,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         }
         private unsafe void RirGenerator(float3 receiverPos, float3 sourcePos, Room r)
         {
-            float fs = 16000;
+            float fs = 8000;
             int nMic = 1;
             MicrophoneType micType = MicrophoneType.Bidirectional;
             int reflectionOrder = -1;
@@ -295,18 +292,42 @@ public class RoomImpulseResponseJob : MonoBehaviour
         }
         public void Execute()
         {
-            RirGenerator(receiverPos, sourcePos, room);
+            //RirGenerator(receiverPos, sourcePos, room);
+            rand = new Unity.Mathematics.Random(1);
+            EasyRirGenerator(room.reverberationTime);
         }
+
+        private void EasyRirGenerator(float t60)
+        {
+            float A = 0.01f;
+            float decay = math.log(1/1000f) / t60;
+            int fs = (int)(impulseResponse.Length / t60);
+            for (int i = 0; i < impulseResponse.Length; i++)
+                impulseResponse[i] = A * RandomGaussian() * math.exp(decay * i / fs);
+        }
+
+        private Unity.Mathematics.Random rand;
+        private float RandomGaussian()
+        {
+            float u1 = 1- rand.NextFloat();
+            float u2 = 1- rand.NextFloat();
+            return (float)(math.sqrt(-2.0f * math.log(u1)) * math.cos(2.0f * math.PI * u2)); //random normal(0,1)
+        }
+
     }
 
     private float CalculateReverberationTime()
     {
         float c = 343;
         float V = room.dimension.x * room.dimension.y * room.dimension.z;
-        float alpha = (room.coefficients.frontWall + room.coefficients.backWall) * room.dimension.x * room.dimension.y +
+        float S_alpha = (room.coefficients.frontWall + room.coefficients.backWall) * room.dimension.x * room.dimension.y +
                       (room.coefficients.leftWall + room.coefficients.rightWall) * room.dimension.y * room.dimension.z +
                       (room.coefficients.floor + room.coefficients.ceiling) * room.dimension.x * room.dimension.z;
-        float reverberationTime = 24 * math.log(10.0f) * V / (c * alpha);
+
+        foreach (GameObject o in GameObject.FindGameObjectsWithTag("Object"))
+            S_alpha += o.GetComponent<AcousticElementDisplay>().acousticElement.nrc * o.transform.localScale.x * o.transform.localScale.y;
+
+        float reverberationTime = 24 * math.log(10.0f) * V / (c * S_alpha);
         if (reverberationTime < 0.128)
             reverberationTime = 0.128f;
         return reverberationTime;
@@ -367,8 +388,6 @@ public class RoomImpulseResponseJob : MonoBehaviour
 
         Vector3 p = acousticElement.transform.position;
 
-        //UnityEngine.Debug.Log(assignedAcousticElements[0]);
-
         float dfw = Vector3.Distance(p, frontW.position);
         float dbw = Vector3.Distance(p, backtW.position);
         float dlw = Vector3.Distance(p, leftW.position);
@@ -376,13 +395,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         float df = Vector3.Distance(p, floor.position);
         float dc = Vector3.Distance(p, ceiling.position);
 
-        float dmin = 100;
-        dmin = math.min(dmin, dfw);
-        dmin = math.min(dmin, dbw);
-        dmin = math.min(dmin, dlw);
-        dmin = math.min(dmin, drw);
-        dmin = math.min(dmin, df);
-        dmin = math.min(dmin, dc);
+        float dmin = Mathf.Min(dfw, dbw, dlw, drw, df, dc);
 
         if (dmin == dfw)
             assignedAcousticElements[0].Add(acousticElement);
@@ -403,7 +416,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         if (acousticElements == null)
             return wallNrc;
 
-        float wallSurface = 0;
+        float wallSurface;
         if (wall.name == "Floor" || wall.name == "Ceiling")
             wallSurface = wall.transform.lossyScale.x * wall.transform.lossyScale.z;
         else
@@ -448,16 +461,19 @@ public class RoomImpulseResponseJob : MonoBehaviour
             if (!room.useReverberationTime)
                 room.reverberationTime = CalculateReverberationTime();
 
-            int fs = 16000;
-            int maxSamples = (int)math.pow(2, 14);
+            int fs = 8000;
+            int maxSamples = (int)math.pow(2, 13);
             if (room.reverberationTime * fs > maxSamples)
                 nSamples = maxSamples;
             else
                 nSamples = (int)(room.reverberationTime * fs);
 
+            nSamples = (int)math.round(44100 * 1.5f * room.reverberationTime);
+
+
             this.sourcePositions = new List<Vector3>(audioSources.Length);
             this.impulseResponses = new List<NativeArray<float>>(audioSources.Length);
-
+            
             jobHandles = new NativeList<JobHandle>(audioSources.Length, Allocator.TempJob);
             for (int i = 0; i < audioSources.Length; i++)
             {              
@@ -479,4 +495,6 @@ public class RoomImpulseResponseJob : MonoBehaviour
             
         }
     }
+
+ 
 }

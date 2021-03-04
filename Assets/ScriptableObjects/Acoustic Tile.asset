@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Acoustic Tile
   m_EditorClassIdentifier: 
   name: Acoustic Tile
-  nrc: 0.9
+  nrc: 0.95
   material: {fileID: 2100000, guid: dcc4d3235fec0964c9940df1469842f0, type: 2}

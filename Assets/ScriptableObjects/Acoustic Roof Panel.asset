@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Acoustic Roof Panel
   m_EditorClassIdentifier: 
   name: Acoustic Roof Panel
-  nrc: 1
+  nrc: 0.95
   material: {fileID: 2100000, guid: fea4caf3e828c334f84121adb5ac249a, type: 2}

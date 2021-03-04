@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Plywood
   m_EditorClassIdentifier: 
   name: Plywood
-  nrc: 0.3
+  nrc: 0.23
   material: {fileID: 2100000, guid: dd26908adcea1ff4b92cd78612b1e1b3, type: 2}

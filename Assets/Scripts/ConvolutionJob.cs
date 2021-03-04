@@ -237,16 +237,22 @@ public class ConvolutionJob : MonoBehaviour
         {
             int L = imp.Length;
             int Nsig = signal.Length;
+            
+            /*Nsig = (int)math.ceil((math.ceil(Nsig / L) - Nsig / L) * L);
+            NativeArray<Complex> signalzp = new NativeArray<Complex>(Nsig, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < Nsig; i++)
+                signalzp[i] = i > signal.Length ? new Complex() : new Complex(signal[i]);
+            */
             int M = L;
             int Nfft = (int)math.pow(2, math.ceil(math.log2(M+L-1)));
             M = Nfft - L + 1;
             int R = M;
-            int Nframes = 1 + (int)math.floor((Nsig - M) / R);
+            int Nframes = 1 + (int)math.floor(math.abs((Nsig - M)) / R);
 
             //Complex* impZeroPadded = stackalloc Complex[Nfft];
             NativeArray<Complex> impZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < Nfft; i++)
-                impZeroPadded[i] = i < imp.Length ? new Complex(imp[i]) : new Complex();
+                impZeroPadded[i] = i < L ? new Complex(imp[i]) : new Complex();
             
             FFT(ref impZeroPadded, Nfft);
 
@@ -267,20 +273,48 @@ public class ConvolutionJob : MonoBehaviour
                     convFFT[i] = impZeroPadded[i] * signalZeroPadded[i];
                 FFT(ref convFFT, Nfft, inverse: true);
 
+                float temp;
                 for (int i = startIndex; i < m * R + Nfft; i++)
                 {
-                    float temp = conv[i] + convFFT[i - startIndex].real;
+                    temp = conv[i] + convFFT[i - startIndex].real;
                     conv[i] = temp;
                 }
-
             }
             impZeroPadded.Dispose();
             signalZeroPadded.Dispose();
             convFFT.Dispose();
         }
+        private void OverlapAdd(ref NativeArray<float> imp, ref NativeArray<float> signal)
+        {
+            //convolution using OVERLAP-ADD
+
+            // get length that arrays will be zero-padded to
+            int K = (int)math.pow(2, math.ceil(math.log(imp.Length + signal.Length - 1) / math.log(2)));
+
+            //create temporary (zero padded to K) arrays
+            NativeArray<Complex> ir_pad = new NativeArray<Complex>(K, Allocator.Temp);
+            for (int i = 0; i < imp.Length; ++i)
+                ir_pad[i] = new Complex(imp[i]);
+            NativeArray<Complex> data_pad = new NativeArray<Complex>(K, Allocator.Temp);
+            for (int i = 0; i < signal.Length; ++i)
+                data_pad[i] = new Complex(signal[i]);
+
+            //FFT 
+            FFT(ref data_pad, K);
+            FFT(ref ir_pad, K);
+            //convolution
+            NativeArray<Complex> ifft = new NativeArray<Complex>(K, Allocator.Temp);
+            for (int i = 0; i < ifft.Length; ++i)
+                ifft[i] = data_pad[i] * ir_pad[i] * K;
+            FFT(ref ifft, K, true);
+
+            for (int i = 0; i < conv.Length; ++i)
+                conv[i] = ifft[i].real;
+        }
         public void Execute()
         {
             Convolve(ref imp, ref signal);
+            //OverlapAdd(ref imp, ref signal);
         }
     }
 # endif

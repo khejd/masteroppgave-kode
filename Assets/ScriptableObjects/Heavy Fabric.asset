@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Heavy Fabric
   m_EditorClassIdentifier: 
   name: Heavy Fabric
-  nrc: 0.6
+  nrc: 0.8
   material: {fileID: 2100000, guid: 6c55ba652e510b740bc0c67948ac6708, type: 2}
