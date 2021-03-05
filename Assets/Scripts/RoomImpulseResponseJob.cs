@@ -270,7 +270,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         }
         private unsafe void RirGenerator(float3 receiverPos, float3 sourcePos, Room r)
         {
-            float fs = 8000;
+            float fs = 16000;
             int nMic = 1;
             MicrophoneType micType = MicrophoneType.Bidirectional;
             int reflectionOrder = -1;
@@ -292,9 +292,9 @@ public class RoomImpulseResponseJob : MonoBehaviour
         }
         public void Execute()
         {
-            //RirGenerator(receiverPos, sourcePos, room);
+            RirGenerator(receiverPos, sourcePos, room);
             rand = new Unity.Mathematics.Random(1);
-            EasyRirGenerator(room.reverberationTime);
+            //EasyRirGenerator(room.reverberationTime);
         }
 
         private void EasyRirGenerator(float t60)
@@ -461,14 +461,14 @@ public class RoomImpulseResponseJob : MonoBehaviour
             if (!room.useReverberationTime)
                 room.reverberationTime = CalculateReverberationTime();
 
-            int fs = 8000;
+            int fs = 16000;
             int maxSamples = (int)math.pow(2, 13);
             if (room.reverberationTime * fs > maxSamples)
                 nSamples = maxSamples;
             else
                 nSamples = (int)(room.reverberationTime * fs);
 
-            nSamples = (int)math.round(44100 * 1.5f * room.reverberationTime);
+            //nSamples = (int)math.round(44100 * 1.5f * room.reverberationTime);
 
 
             this.sourcePositions = new List<Vector3>(audioSources.Length);

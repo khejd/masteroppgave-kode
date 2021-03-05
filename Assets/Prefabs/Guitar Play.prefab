@@ -12,15 +12,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Guitar Play
       objectReference: {fileID: 0}
+    - target: {fileID: 1051185614347075297, guid: b0f499203bc84d74083b2bd9532bbdcb,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1051185614347075298, guid: b0f499203bc84d74083b2bd9532bbdcb,
         type: 3}
       propertyPath: m_audioClip
       value: 
-      objectReference: {fileID: 8300000, guid: 8c659c7ac9d8de54bbdf2e953e31a27e, type: 3}
+      objectReference: {fileID: 8300000, guid: 2eeaedb566c2cd043beae5d86067b8bc, type: 3}
     - target: {fileID: 1051185614347075298, guid: b0f499203bc84d74083b2bd9532bbdcb,
         type: 3}
       propertyPath: m_Volume
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1051185614347075299, guid: b0f499203bc84d74083b2bd9532bbdcb,
         type: 3}
@@ -76,6 +81,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 45
+      objectReference: {fileID: 0}
+    - target: {fileID: 6487862855507471312, guid: b0f499203bc84d74083b2bd9532bbdcb,
+        type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b0f499203bc84d74083b2bd9532bbdcb, type: 3}
