@@ -324,8 +324,8 @@ public class RoomImpulseResponseJob : MonoBehaviour
                       (room.coefficients.leftWall + room.coefficients.rightWall) * room.dimension.y * room.dimension.z +
                       (room.coefficients.floor + room.coefficients.ceiling) * room.dimension.x * room.dimension.z;
 
-        foreach (GameObject o in GameObject.FindGameObjectsWithTag("Object"))
-            S_alpha += o.GetComponent<AcousticElementDisplay>().acousticElement.nrc * o.transform.localScale.x * o.transform.localScale.y;
+        //foreach (GameObject o in GameObject.FindGameObjectsWithTag("Object"))
+        //    S_alpha += o.GetComponent<AcousticElementDisplay>().acousticElement.nrc * o.transform.lossyScale.x * o.transform.lossyScale.y;
 
         float reverberationTime = 24 * math.log(10.0f) * V / (c * S_alpha);
         if (reverberationTime < 0.128)
@@ -388,6 +388,40 @@ public class RoomImpulseResponseJob : MonoBehaviour
 
         Vector3 p = acousticElement.transform.position;
 
+        Collider closest = null;
+        float lastLength = Mathf.Infinity;
+        Collider[] colliders = Physics.OverlapSphere(p, lastLength, 1 << 8);
+        bool flagSet = false;
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Vector3 temp = colliders[i].ClosestPointOnBounds(p);
+            Vector3 tempLength = temp - p;
+            float sqrLength = tempLength.sqrMagnitude;
+
+            if (sqrLength < lastLength * lastLength)
+            {
+                closest = colliders[i];
+                lastLength = tempLength.magnitude;
+                flagSet = true;
+            }
+        }
+        if (flagSet)
+        {
+            string name = closest.gameObject.name;
+            switch (name)
+            {
+                case "Front Wall": assignedAcousticElements[0].Add(acousticElement); break;
+                case "Back Wall": assignedAcousticElements[1].Add(acousticElement); break;
+                case "Left Wall": assignedAcousticElements[2].Add(acousticElement); break;
+                case "Right Wall": assignedAcousticElements[3].Add(acousticElement); break;
+                case "Floor": assignedAcousticElements[4].Add(acousticElement); break;
+                case "Ceiling": assignedAcousticElements[5].Add(acousticElement); break;
+                default: break;
+            }
+        }
+        
+        /*
         float dfw = Vector3.Distance(p, frontW.position);
         float dbw = Vector3.Distance(p, backtW.position);
         float dlw = Vector3.Distance(p, leftW.position);
@@ -409,6 +443,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
             assignedAcousticElements[4].Add(acousticElement);
         else if (dmin == dc)
             assignedAcousticElements[5].Add(acousticElement);
+        */
     }
     private static float CalculateWallCoefficient(GameObject wall, List<GameObject> acousticElements)
     {
@@ -427,7 +462,12 @@ public class RoomImpulseResponseJob : MonoBehaviour
         foreach (GameObject element in acousticElements)
         {
             float acousticElementNrc = element.GetComponent<AcousticElementDisplay>().acousticElement.nrc;
-            float acousticElementSurface = element.transform.lossyScale.x * element.transform.lossyScale.z;
+            float acousticElementSurface = 0;
+            if (wall.name == "Floor" || wall.name == "Ceiling")
+                acousticElementSurface = element.transform.lossyScale.x * element.transform.lossyScale.z;
+            else
+                acousticElementSurface = element.transform.lossyScale.x * element.transform.lossyScale.y;
+            
             s += acousticElementSurface;
             a += acousticElementNrc * acousticElementSurface;
         }

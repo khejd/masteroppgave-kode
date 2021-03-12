@@ -31,6 +31,7 @@ public class ARTapToPlaceObject : MonoBehaviour
         return false;
     }
 
+    public Pose hitPose;
     private void Update()
     {
         if (!TryGetTouchPosition(out Vector2 touchPosition))
@@ -38,10 +39,10 @@ public class ARTapToPlaceObject : MonoBehaviour
 
         if (LeanSelectable.IsSelectedCount == 0 && _arRaycastManager.Raycast(touchPosition, hits, TrackableType.PlaneWithinPolygon))
         {
-            Pose hitPose = hits[0].pose;
+            hitPose = hits[0].pose;
 
             if (spawnedObject == null)
-                spawnedObject = Instantiate(gameObjectToInstantiate, hitPose.position, Quaternion.identity);
+                spawnedObject = Instantiate(gameObjectToInstantiate, hitPose.position + transform.up * gameObjectToInstantiate.transform.localScale.y / 2, Quaternion.identity);
             else
                 spawnedObject.transform.position = hitPose.position;
         }

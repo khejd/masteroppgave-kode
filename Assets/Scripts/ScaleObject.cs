@@ -45,8 +45,9 @@ public class ScaleObject : MonoBehaviour
     {
         UpdateSliderText(scaleHeight);
         //float yPos = GameObject.Find("AR Session Origin").GetComponent<ARTapToPlaceObject>().hits[0].pose.position.y;
+        float yPos = GameObject.Find("AR Session Origin").GetComponent<ARTapToPlaceObject>().hitPose.position.y;
         transform.localScale = new Vector3(transform.localScale.x, scaleHeight.value, transform.localScale.z);
-        transform.position = new Vector3(transform.position.x, yPosInit + scaleHeight.value / 2 - 1, transform.position.z);
+        transform.position = new Vector3(transform.position.x, yPos + transform.localScale.y / 2, transform.position.z);
     }
 
     private void UpdateSliderText(Slider slider, string postfix = "m", string value = "")

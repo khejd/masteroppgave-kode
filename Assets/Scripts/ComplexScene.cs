@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.ARFoundation;
+using TMPro;
 
 public class ComplexScene : MonoBehaviour
 {
@@ -17,7 +19,7 @@ public class ComplexScene : MonoBehaviour
     private Vector3 scene;
     private Transform partner;
 
-    private bool isInitialRoom = true;
+    private int room = 0;
 
     private ConvolutionJob c;
     private RoomImpulseResponseJob r;
@@ -32,7 +34,7 @@ public class ComplexScene : MonoBehaviour
         c = GameObject.Find("Convolution").GetComponent<ConvolutionJob>();
         r = GameObject.Find("Room Impulse Response").GetComponent<RoomImpulseResponseJob>();
 
-        distances = new List<float>(4);
+        distances = new List<float>(4) { 0, 0, 0, 0 };
     }
     public void AddAudio()
     {
@@ -53,18 +55,50 @@ public class ComplexScene : MonoBehaviour
     private List<float> distances;
     public void RegisterDistance()
     {
-        Vector3 player = GameObject.FindGameObjectWithTag("MainCamera").transform.position;
-        distances.Add(Vector3.Distance(player, partner.position));
-
-        foreach (float d in distances)
-            Debug.Log(d);
+        Vector3 player = GameObject.Find("AR Camera").transform.position;
+        distances[room] = Vector3.Distance(player, partner.position);
     }
 
+    public GameObject panel;
+    public TextMeshProUGUI room1AR;
+    public TextMeshProUGUI room1NoAR;
+    public TextMeshProUGUI room2AR;
+    public TextMeshProUGUI room2NoAR;
+
+    public GameObject prefab;
     public void ChangeRoom()
     {
-        GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = isInitialRoom ? changedCeiling : initialCeiling;
+        room++;
 
-        isInitialRoom = !isInitialRoom;
+        GameObject.Find("AR Camera").transform.position = new Vector3(0, 0, 0);
+        if (room == 1)
+            GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = changedCeiling;
+        else if (room == 2)
+        {
+            GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = initialCeiling;
+            GameObject cam = GameObject.Find("AR Camera");
+            cam.GetComponent<Camera>().enabled = false;
+            cam.GetComponent<ARPoseDriver>().enabled = false;
+            cam.GetComponent<ARCameraManager>().enabled = false;
+
+            Instantiate(prefab, cam.transform, false);
+
+
+            GameObject.Find("Top View Camera").GetComponent<Camera>().enabled = true;
+            gameObject.GetComponent<Joystick>().enabled = true;
+        }
+        else if (room == 3)
+            GameObject.Find("Ceiling").GetComponent<AcousticElementDisplay>().acousticElement = changedCeiling;
+        else if (room == 4)
+        {
+            this.panel.SetActive(true);
+            this.room1AR.text = "Room 1: " + distances[0].ToString("F2") + "m";
+            this.room1NoAR.text = "Room 1: " + distances[2].ToString("F2") + "m";
+            this.room2AR.text = "Room 2: " + distances[1].ToString("F2") + "m";
+            this.room2NoAR.text = "Room 2: " + distances[3].ToString("F2") + "m";
+            return;
+        }
+
         r.ToggleCalculateImpulseResponse();
     }
 
