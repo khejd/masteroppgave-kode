@@ -379,7 +379,7 @@ public class ConvolutionJob : MonoBehaviour
                 string temp = f.ToString().Replace(',', '.');
                 s += temp + ";";
             }
-            File.WriteAllText(Application.dataPath + "/output.txt", s);
+            File.WriteAllText(Application.dataPath + "/output_dir.txt", s);
             */
 
             for (int i = 0; i < nAudioSources; i++)

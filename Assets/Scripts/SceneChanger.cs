@@ -18,6 +18,6 @@ public class SceneChanger : MonoBehaviour
     }
     public void Scene3()
     {
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("Challenge");
     }
 }

@@ -272,7 +272,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         {
             float fs = 16000;
             int nMic = 1;
-            MicrophoneType micType = MicrophoneType.Bidirectional;
+            MicrophoneType micType = MicrophoneType.Omnidirectional;
             int reflectionOrder = -1;
             bool hp_filter = false;
             float2 micOrientation = new float2(0, 0);
@@ -293,7 +293,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
         public void Execute()
         {
             RirGenerator(receiverPos, sourcePos, room);
-            rand = new Unity.Mathematics.Random(1);
+            //rand = new Unity.Mathematics.Random(1);
             //EasyRirGenerator(room.reverberationTime);
         }
 
@@ -508,7 +508,8 @@ public class RoomImpulseResponseJob : MonoBehaviour
             else
                 nSamples = (int)(room.reverberationTime * fs);
 
-            //nSamples = (int)math.round(44100 * 1.5f * room.reverberationTime);
+
+            // nSamples = (int)math.round(22050 * 1.0f * room.reverberationTime);
 
 
             this.sourcePositions = new List<Vector3>(audioSources.Length);
@@ -531,8 +532,8 @@ public class RoomImpulseResponseJob : MonoBehaviour
             }
        
             newImpulseResponse = true;
-            GameObject.Find("Reverberation Time Text").GetComponent<TextMeshProUGUI>().text = room.reverberationTime.ToString("F2");
-            
+            GameObject.Find("Reverberation Time Text").GetComponent<TextMeshProUGUI>().text = "Reverberation time: " + room.reverberationTime.ToString("F2") + " seconds.";
+
         }
     }
 

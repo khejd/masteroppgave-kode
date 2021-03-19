@@ -11,11 +11,19 @@ public class Joystick : MonoBehaviour
     private Vector2 pointA;
     private Vector2 pointB;
 
+    private Vector2 initPosition;
+
     public RectTransform circle;
     public RectTransform outerCircle;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
+    {
+        initPosition = circle.transform.position;
+        circle.GetComponent<Image>().enabled = true;
+        outerCircle.GetComponent<Image>().enabled = true;
+    }
+
+    private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -23,8 +31,8 @@ public class Joystick : MonoBehaviour
 
             circle.transform.position = pointA;
             outerCircle.transform.position = pointA;
-            circle.GetComponent<Image>().enabled = true;
-            outerCircle.GetComponent<Image>().enabled = true;
+            //circle.GetComponent<Image>().enabled = true;
+            //outerCircle.GetComponent<Image>().enabled = true;
         }
         if (Input.GetMouseButton(0))
         {
@@ -43,20 +51,23 @@ public class Joystick : MonoBehaviour
         {
             Vector2 offset = pointB - pointA;
             Vector2 direction = Vector2.ClampMagnitude(offset, outerCircle.rect.width * outerCircle.transform.localScale.x / 2);
-            moveCharacter(offset);
+            MoveCharacter(offset);
 
             circle.transform.position = new Vector2(pointA.x + direction.x, pointA.y + direction.y);
         }
         else
         {
-            circle.GetComponent<Image>().enabled = false;
-            outerCircle.GetComponent<Image>().enabled = false;
+            circle.transform.position = initPosition;
+            outerCircle.transform.position = initPosition;
+            //circle.GetComponent<Image>().enabled = false;
+            //outerCircle.GetComponent<Image>().enabled = false;
         }
 
     }
-    void moveCharacter(Vector2 offset)
+    private void MoveCharacter(Vector2 offset)
     {
         Vector2 direction = Vector2.ClampMagnitude(offset, 1.0f);
-        player.Translate(new Vector3(direction.x, 0, direction.y) * speed * Time.deltaTime);
+        direction *= speed * Time.deltaTime;
+        player.Translate(direction.x, 0, direction.y);
     }
 }
