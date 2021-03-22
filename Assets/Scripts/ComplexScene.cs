@@ -11,6 +11,7 @@ public class ComplexScene : MonoBehaviour
     public GameObject audio2Prefab;
     public GameObject scenePrefab;
     public GameObject partnerPrefab;
+    public GameObject marker;
 
     public AcousticElement initialCeiling;
     public AcousticElement changedCeiling;
@@ -37,7 +38,7 @@ public class ComplexScene : MonoBehaviour
         c = GameObject.Find("Convolution").GetComponent<ConvolutionJob>();
         r = GameObject.Find("Room Impulse Response").GetComponent<RoomImpulseResponseJob>();
 
-        distances = new List<float>(4) { 0, 0, 0, 0 };
+        coordinates = new List<Vector3>(4) {new Vector3(), new Vector3(), new Vector3(), new Vector3() };
         challengeDescription.text = helpText;
         StartCoroutine(FlashTextAnimation());
     }
@@ -46,7 +47,8 @@ public class ComplexScene : MonoBehaviour
         Instantiate(audio1Prefab, audio1, audio1Prefab.transform.rotation);
         Instantiate(audio2Prefab, audio2, audio2Prefab.transform.rotation);
         Instantiate(scenePrefab, scene, scenePrefab.transform.rotation);
-        Instantiate(partnerPrefab, partner + transform.up * partnerPrefab.transform.lossyScale.y / 2, partnerPrefab.transform.rotation);
+        GameObject p = Instantiate(partnerPrefab, new Vector3(partner.x, 0.02f, partner.z), partnerPrefab.transform.rotation);
+        p.GetComponent<MeshRenderer>().enabled = false;
 
         ConvolutionJob c = GameObject.Find("Convolution").GetComponent<ConvolutionJob>();
         c.AddAudioSource(audio1Prefab.GetComponent<AudioSource>().clip);
@@ -57,11 +59,18 @@ public class ComplexScene : MonoBehaviour
         r.ToggleCalculateImpulseResponse();
     }
 
-    private List<float> distances;
-    public void RegisterDistance()
+    private static Vector3 CalculatePositionRelativeToGuest(Vector3 guestPosition, Vector3 position)
+    {
+        return position - guestPosition;
+    }
+
+    private List<Vector3> coordinates;
+    public void RegisterCoordinates()
     {
         Vector3 player = GameObject.Find("AR Camera").transform.position;
-        distances[room] = Vector3.Distance(player, partner);
+        marker.transform.position = new Vector3(player.x, marker.transform.position.y, player.z);
+        Vector3 p = GameObject.Find("Meghan@Sitting").transform.position;
+        coordinates[room] = CalculatePositionRelativeToGuest(p, player);
     }
 
     public GameObject nextScenePanel;
@@ -82,45 +91,48 @@ public class ComplexScene : MonoBehaviour
         }
         else if (challengeNo == 2)
         {
-            helpText = "Register distance when you feel close enough.";
+            helpText = "Place the marker when you feel close enough.";
             registerDistanceButton.SetActive(true);
             registerDistanceButton.GetComponent<Button>().onClick.AddListener(NextChallenge);
         }
         else if (challengeNo == 3)
         {
-            helpText = "Distance registered. You can now change the room.";
+            marker.SetActive(true);
+            helpText = "Marker placed. Proceed to the next room.";
             registerDistanceButton.GetComponent<Button>().onClick.RemoveListener(NextChallenge);
         }
         else if (challengeNo == 4)
         {
-            helpText = "Register distance when you feel close enough.";
+            helpText = "Place the marker when you feel close enough.";
             registerDistanceButton.GetComponent<Button>().onClick.AddListener(NextChallenge);
         }
         else if (challengeNo == 5)
         {
-            helpText = "Distance registered. You can now change the room.";
+            helpText = "Marker placed. Proceed to the next room.";
             registerDistanceButton.GetComponent<Button>().onClick.RemoveListener(NextChallenge);
         }
         else if (challengeNo == 6)
         {
-            helpText = "Register distance when you feel close enough.";
+            marker.SetActive(false);
+            helpText = "Place the marker when you feel close enough.";
             registerDistanceButton.GetComponent<Button>().onClick.AddListener(NextChallenge);
             surveyPanel.SetActive(true);
             MuteAll();
         }
         else if (challengeNo == 7)
         {
-            helpText = "Distance registered. You can now change the room.";
+            marker.SetActive(true);
+            helpText = "Marker placed. Proceed to the next room.";
             registerDistanceButton.GetComponent<Button>().onClick.RemoveListener(NextChallenge);
         }
         else if (challengeNo == 8)
         {
-            helpText = "Register distance when you feel close enough.";
+            helpText = "Place the marker when you feel close enough.";
             registerDistanceButton.GetComponent<Button>().onClick.AddListener(NextChallenge);
         }
         else if (challengeNo == 9)
         {
-            helpText = "Distance registered. You can now change the room.";
+            helpText = "Marker placed. Proceed to the next room.";
             registerDistanceButton.GetComponent<Button>().onClick.RemoveListener(NextChallenge);
         }
         challengeDescription.text = helpText;
@@ -181,10 +193,10 @@ public class ComplexScene : MonoBehaviour
         {
             MuteAll();
             this.nextScenePanel.SetActive(true);
-            this.room1AR.text = "Room 1: " + distances[0].ToString("F2") + "m";
-            this.room1NoAR.text = "Room 1: " + distances[2].ToString("F2") + "m";
-            this.room2AR.text = "Room 2: " + distances[1].ToString("F2") + "m";
-            this.room2NoAR.text = "Room 2: " + distances[3].ToString("F2") + "m";
+            this.room1AR.text = "Room 1 x: " + coordinates[0].x.ToString("F2") + ", y: " + coordinates[0].z.ToString("F2");
+            this.room1NoAR.text = "Room 1 x: " + coordinates[2].x.ToString("F2") + ", y: " + coordinates[2].z.ToString("F2");
+            this.room2AR.text = "Room 2 x: " + coordinates[1].x.ToString("F2") + ", y: " + coordinates[1].z.ToString("F2");
+            this.room2NoAR.text = "Room 2 x: " + coordinates[3].x.ToString("F2") + ", y: " + coordinates[3].z.ToString("F2");
             return;
         }
         NextChallenge();
@@ -210,6 +222,7 @@ public class ComplexScene : MonoBehaviour
             if (Vector3.Distance(player, partner) <= 6)
                 NextChallenge();
         }
+
     }
 
 }

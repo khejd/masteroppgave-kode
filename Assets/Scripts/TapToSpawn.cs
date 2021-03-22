@@ -53,11 +53,28 @@ public class TapToSpawn : MonoBehaviour
         switch (wallDropdown.value)
         {
             case 0: break;
-            case 1: Transform frontWall = GameObject.Find("Front Wall").transform; pos = frontWall.position - transform.forward * frontWall.lossyScale.z; lastSpawned.transform.rotation = rot1; break;
-            case 2: Transform backWall = GameObject.Find("Back Wall").transform; pos = backWall.position + transform.forward * backWall.lossyScale.z; lastSpawned.transform.rotation = rot1; break;
-            case 3: Transform leftWall = GameObject.Find("Left Wall").transform; pos = leftWall.position + transform.right * leftWall.lossyScale.z; lastSpawned.transform.rotation = rot2; break;
-            case 4: Transform rightWall = GameObject.Find("Right Wall").transform; pos = rightWall.position - transform.right * rightWall.lossyScale.z; lastSpawned.transform.rotation = rot2; break;
-            default: break;
+            case 1: 
+                Transform frontWall = GameObject.Find("Front Wall").transform; 
+                pos = frontWall.position - transform.forward * frontWall.lossyScale.z; 
+                lastSpawned.transform.rotation = rot1; 
+                break;
+            case 2: 
+                Transform backWall = GameObject.Find("Back Wall").transform; 
+                pos = backWall.position + transform.forward * backWall.lossyScale.z; 
+                lastSpawned.transform.rotation = rot1; 
+                break;
+            case 3: 
+                Transform leftWall = GameObject.Find("Left Wall").transform; 
+                pos = leftWall.position + transform.right * leftWall.lossyScale.z; 
+                lastSpawned.transform.rotation = rot2; 
+                break;
+            case 4: 
+                Transform rightWall = GameObject.Find("Right Wall").transform; 
+                pos = rightWall.position - transform.right * rightWall.lossyScale.z; 
+                lastSpawned.transform.rotation = rot2; 
+                break;
+            default: 
+                break;
         }
         lastSpawned.transform.position = pos;
     }
