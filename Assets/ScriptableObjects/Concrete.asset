@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Concrete
   m_EditorClassIdentifier: 
   name: Concrete
-  nrc: 0.4
+  nrc: 0.05
   material: {fileID: 2100000, guid: 821383397b2623647a84b9d4a59c12b9, type: 2}
