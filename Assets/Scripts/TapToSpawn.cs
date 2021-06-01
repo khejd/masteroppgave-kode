@@ -4,20 +4,38 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// The main <c>TapToSpawn</c> class.
+/// </summary>
 [RequireComponent(typeof(Button))]
 public class TapToSpawn : MonoBehaviour
 {
+    /// <summary>
+    /// The prefab object to be spawned.
+    /// </summary>
     public GameObject prefab;
+
+    /// <summary>
+    /// Dropdown menu for selecting a wall to assign the prefab.
+    /// </summary>
     public TMP_Dropdown wallDropdown;
 
-
+    /// <summary>
+    /// Adds event listener on button click to run method <c>Spawn</c> on awake.
+    /// </summary>
     private void Awake()
     {
         this.GetComponent<Button>().onClick.AddListener(Spawn);
     }
 
-
+    /// <summary>
+    /// Game object of the last spawned prefab.
+    /// </summary>
     private GameObject lastSpawned;
+
+    /// <summary>
+    /// Spawns the prefab to the scene.
+    /// </summary>
     public void Spawn()
     {
         Transform room = GameObject.FindGameObjectWithTag("Room").transform;
@@ -26,7 +44,7 @@ public class TapToSpawn : MonoBehaviour
         if (Equals(prefab.name, "Carpet") || Equals(prefab.name, "Door"))
         {
             Transform floor = GameObject.Find("Floor").transform;
-            position = floor.position + transform.up * floor.lossyScale.z;
+            position = floor.position + 2 * transform.up * floor.localScale.y;
         }
 
         if (Equals(prefab.tag, "Audio Source"))
@@ -41,6 +59,9 @@ public class TapToSpawn : MonoBehaviour
         lastSpawned.transform.localScale = newScale;
     }
 
+    /// <summary>
+    /// Attaches the spawned object to a wall.
+    /// </summary>
     public void AttachToWall()
     {
         Vector3 pos = new Vector3();

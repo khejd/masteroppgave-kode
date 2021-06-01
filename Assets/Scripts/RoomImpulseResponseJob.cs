@@ -6,14 +6,25 @@ using Unity.Collections;
 using Unity.Burst;
 using Unity.Mathematics;
 using TMPro;
-using System.Runtime.CompilerServices;
 
+/// <summary>
+/// The main <c>RoomImpulseResponseJob</c> class.
+/// </summary>
 public class RoomImpulseResponseJob : MonoBehaviour
 {
+    /// <summary>
+    /// Struct for holding dimensions of the room.
+    /// </summary>
     [System.Serializable]
     public struct Dimension
     {
         public float x, y, z;
+        /// <summary>
+        /// Constructor for <c>Dimension</c> struct.
+        /// </summary>
+        /// <param name="x">x-value</param>
+        /// <param name="y">y-value</param>
+        /// <param name="z">z-value</param>
         public Dimension(float x, float y, float z)
         {
             this.x = x;
@@ -21,12 +32,25 @@ public class RoomImpulseResponseJob : MonoBehaviour
             this.z = z;
         }
     }
+    /// <summary>
+    /// Struct for holding surface acoustic coefficients.
+    /// </summary>
     [System.Serializable]
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct Coefficients
     {
         public float frontWall, backWall, leftWall, rightWall, floor, ceiling;
         public bool isReflection;
+        /// <summary>
+        /// Constructor for <c>Coefficients</c> struct.
+        /// </summary>
+        /// <param name="frontWall">Front wall coefficient</param>
+        /// <param name="backWall">Back wall coefficient</param>
+        /// <param name="leftWall">Left wall coefficient</param>
+        /// <param name="rightWall">Right wall coefficient</param>
+        /// <param name="floor">Floor coefficient</param>
+        /// <param name="ceiling">Ceiling coefficient</param>
+        /// <param name="isReflection">Are the coefficients for acoustic reflection (<c>true</c>) or for acoustic absorption (<c>false</c>)</param>
         public Coefficients(float frontWall, float backWall, float leftWall, float rightWall, float floor, float ceiling, bool isReflection)
         {
             this.frontWall = frontWall;
@@ -37,6 +61,9 @@ public class RoomImpulseResponseJob : MonoBehaviour
             this.ceiling = ceiling;
             this.isReflection = isReflection;
         }
+        /// <summary>
+        /// Converts from absorption coefficients to absorption coefficients.
+        /// </summary>
         public void ToReflection()
         {
             this.frontWall = AbsorptionToReflection(this.frontWall);
@@ -48,9 +75,19 @@ public class RoomImpulseResponseJob : MonoBehaviour
             this.isReflection = true;
         }
     }
+
+    /// <summary>
+    /// Struct for holding the room.
+    /// </summary>
     [System.Serializable]
     public struct Room
     {
+        /// <summary>
+        /// Constructor for the <c>Room</c> struct.
+        /// </summary>
+        /// <param name="dimension">Dimensions of the room</param>
+        /// <param name="coefficients">Coefficients present in the room</param>
+        /// <param name="reverberationTime">The room's reverberation time</param>
         public Room(Dimension dimension, Coefficients coefficients, float reverberationTime = -1)
         {
             this.dimension = dimension;
@@ -64,14 +101,35 @@ public class RoomImpulseResponseJob : MonoBehaviour
         public bool useReverberationTime;
     }
 
+    /// <summary>
+    /// The position of the player in the scene.
+    /// </summary>
     public Vector3 receiverPosition = new Vector3();
+
+    /// <summary>
+    /// A list of all the playing soures' positions.
+    /// </summary>
     public List<Vector3> sourcePositions = new List<Vector3>();
+
+    /// <summary>
+    /// The room in the scene.
+    /// </summary>
     public Room room = new Room();
 
+    /// <summary>
+    /// Toggle variable for initiating a calculation of new impulse responses.
+    /// </summary>
     public bool calculateImpulseResponse = false;
+
+    /// <summary>
+    /// Flag used for indicating that a new impulse response is generated.
+    /// </summary>
     [System.NonSerialized]
     public bool newImpulseResponse = false;
 
+    /// <summary>
+    /// Enumeration type for available microphone types.
+    /// </summary>
     public enum MicrophoneType
     {
         Bidirectional,
@@ -81,33 +139,78 @@ public class RoomImpulseResponseJob : MonoBehaviour
         Omnidirectional
     }
 
+    /// <summary>
+    /// The main struct for generating room impulse responses in parallell.
+    /// </summary>
     [BurstCompile]
     public struct RirJob : IJob
     {
         [ReadOnly]
         public float3 receiverPos, sourcePos;
         public Room room;
-        public NativeArray<float> impulseResponse;
+        [NoAlias] public NativeArray<float> impulseResponse;
+        /// <summary>
+        /// Calculates the sinc of input x.
+        /// </summary>
+        /// <param name="x">Degrees in radians.</param>
+        /// <returns>sin(x)/x</returns>
         private static float Sinc(float x)
         {
             if (x == 0)
                 return 1.0f;
             return math.sin(x) / x;
         }
+
+        /*
+         * The software implementation is inspired by dr.ir. Emanuel Habets' (e.habets@ieee.org)
+         * implementation of the Image-Source method.
+         * url: https://github.com/ehabets/RIR-Generator/blob/master/rir_generator.cpp
+         * version: 2.2.20201022
+         */
+
+        /* MIT Lisence:
+         * Permission is hereby granted, free of charge, to any person obtaining a copy 
+         * of this software and associated documentation files (the "Software"), to deal
+         * in the Software without restriction, including without limitation the rights
+         * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+         * copies of the Software, and to permit persons to whom the Software is
+         * furnished to do so, subject to the following conditions:
+         * The above copyright notice and this permission notice shall be included in all
+         * copies or substantial portions of the Software.
+         * 
+         * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+         * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+         * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+         * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+         * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+         * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+         * SOFTWARE.
+         */
+
+        /// <summary>
+        /// Simulates the microphone type
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="microphone_angle"></param>
+        /// <param name="mtype">Microphone type</param>
+        /// <returns></returns>
         private static float SimMicrophone(float x, float y, float z, float2 microphone_angle, MicrophoneType mtype)
         {
             if (mtype == MicrophoneType.Bidirectional || mtype == MicrophoneType.Cardioid || mtype == MicrophoneType.Subcardioid || mtype == MicrophoneType.Hypercardioid)
             {
                 float gain, vartheta, varphi, rho;
 
-                // Polar Pattern         rho
-                // ---------------------------
-                // Bidirectional         0
-                // Hypercardioid         0.25
-                // Cardioid              0.5
-                // Subcardioid           0.75
-                // Omnidirectional       1
-
+                /*
+                 * Polar Pattern         rho
+                 * ---------------------------
+                 * Bidirectional         0
+                 * Hypercardioid         0.25
+                 * Cardioid              0.5
+                 * Subcardioid           0.75
+                 * Omnidirectional       1
+                */
                 switch (mtype)
                 {
                     case MicrophoneType.Bidirectional:
@@ -138,7 +241,20 @@ public class RoomImpulseResponseJob : MonoBehaviour
             else
                 return 1;
         }
-        private unsafe void ComputeRIR(float fs, float3 rr, int nMicrophones, float3 ss, float3 LL, int nSamples, NativeArray<float> beta, MicrophoneType microphone_type, int nOrder, float2 microphone_angle, int isHighPassFilter)
+        /// <summary>
+        /// Computes the room impulse response using Image-Source method.
+        /// </summary>
+        /// <param name="fs">Sampling frequency</param>
+        /// <param name="rr">Receiver position</param>
+        /// <param name="nMicrophones">Number of microphones</param>
+        /// <param name="ss">Source position</param>
+        /// <param name="LL">Room dimensions</param>
+        /// <param name="nSamples">Number of samples</param>
+        /// <param name="beta">Reflection coefficients</param>
+        /// <param name="microphone_type">Microphone type</param>
+        /// <param name="nOrder">Reflection order</param>
+        /// <param name="microphone_angle">Microphone orientation</param>
+        private void ComputeRIR(float fs, float3 rr, int nMicrophones, float3 ss, float3 LL, int nSamples, [NoAlias] ref NativeArray<float> beta, MicrophoneType microphone_type, int nOrder, float2 microphone_angle)
         {
             // Temporary variables and constants (high-pass filter)
             float c = 343;
@@ -147,14 +263,15 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float B1 = 2 * R1 * math.cos(W);
             float B2 = -R1 * R1;
             float A1 = -(1 + R1);
-            float X0;
+            //float X0;
             //float* Y = stackalloc float[3];
-            float3 Y = new float3();
+            //float3 Y = new float3();
 
             // Temporary variables and constants (image-method)
             float Fc = 0.5f; // The normalized cut-off frequency equals (fs/2) / fs = 0.5
             int Tw = (int)(2 * math.round(0.004f * fs)); // The width of the low-pass FIR equals 8 ms
             float cTs = c / fs;
+            
             NativeArray<float> LPI = new NativeArray<float>(Tw, Allocator.Temp);
             float3 r = new float3();
             float3 s = new float3();
@@ -162,8 +279,10 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float3 Rm = new float3();
             float3 Rp_plus_Rm = new float3();
             float3 refl = new float3();
+            
+            //float* LPI = stackalloc float[Tw];
+            
             /*
-            float* LPI = stackalloc float[Tw];
             float* r = stackalloc float[3];
             float* s = stackalloc float[3];
             float* L = stackalloc float[3];
@@ -178,6 +297,10 @@ public class RoomImpulseResponseJob : MonoBehaviour
             int q, j, k;
             int mx, my, mz;
             int n;
+
+            float pow_beta1_mx, pow_beta3_my, pow_beta5_mz;
+            float pow_Rp_plus_Rm0, pow_Rp_plus_Rm1;
+            float t;
 
             s[0] = ss[0] / cTs; s[1] = ss[1] / cTs; s[2] = ss[2] / cTs;
             L[0] = LL[0] / cTs; L[1] = LL[1] / cTs; L[2] = LL[2] / cTs;
@@ -197,31 +320,38 @@ public class RoomImpulseResponseJob : MonoBehaviour
                 for (mx = -n1; mx <= n1; mx++)
                 {
                     Rm[0] = 2 * mx * L[0];
+                    pow_beta1_mx = math.pow(beta[1], math.abs(mx));
 
                     for (my = -n2; my <= n2; my++)
                     {
                         Rm[1] = 2 * my * L[1];
+                        pow_beta3_my = math.pow(beta[3], math.abs(my));
 
                         for (mz = -n3; mz <= n3; mz++)
                         {
                             Rm[2] = 2 * mz * L[2];
+                            pow_beta5_mz = math.pow(beta[5], math.abs(mz));
 
                             for (q = 0; q <= 1; q++)
                             {
                                 Rp_plus_Rm[0] = (1 - 2 * q) * s[0] - r[0] + Rm[0];
-                                refl[0] = math.pow(beta[0], math.abs(mx - q)) * math.pow(beta[1], math.abs(mx));
+                                refl[0] = math.pow(beta[0], math.abs(mx - q)) * pow_beta1_mx;
+
+                                pow_Rp_plus_Rm0 = math.pow(Rp_plus_Rm[0], 2);
 
                                 for (j = 0; j <= 1; j++)
                                 {
                                     Rp_plus_Rm[1] = (1 - 2 * j) * s[1] - r[1] + Rm[1];
-                                    refl[1] = math.pow(beta[2], math.abs(my - j)) * math.pow(beta[3], math.abs(my));
+                                    refl[1] = math.pow(beta[2], math.abs(my - j)) * pow_beta3_my;
+
+                                    pow_Rp_plus_Rm1 = math.pow(Rp_plus_Rm[1], 2);
 
                                     for (k = 0; k <= 1; k++)
                                     {
                                         Rp_plus_Rm[2] = (1 - 2 * k) * s[2] - r[2] + Rm[2];
-                                        refl[2] = math.pow(beta[4], math.abs(mz - k)) * math.pow(beta[5], math.abs(mz));
+                                        refl[2] = math.pow(beta[4], math.abs(mz - k)) * pow_beta5_mz;
 
-                                        dist = math.sqrt(math.pow(Rp_plus_Rm[0], 2) + math.pow(Rp_plus_Rm[1], 2) + math.pow(Rp_plus_Rm[2], 2));
+                                        dist = math.sqrt(pow_Rp_plus_Rm0 + pow_Rp_plus_Rm1 + math.pow(Rp_plus_Rm[2], 2));
 
                                         if (math.abs(2 * mx - q) + math.abs(2 * my - j) + math.abs(2 * mz - k) <= nOrder || nOrder == -1)
                                         {
@@ -233,15 +363,13 @@ public class RoomImpulseResponseJob : MonoBehaviour
 
                                                 for (n = 0; n < Tw; n++)
                                                 {
-                                                    float t = (n - 0.5f * Tw + 1) - (dist - fdist);
+                                                    t = (n - 0.5f * Tw + 1) - (dist - fdist);
                                                     LPI[n] = 0.5f * (1.0f + math.cos(2.0f * math.PI * t / Tw)) * 2.0f * Fc * Sinc(math.PI * 2.0f * Fc * t);
                                                 }
                                                 startPosition = (int)fdist - (Tw / 2) + 1;
                                                 for (n = 0; n < Tw; n++)
                                                     if (startPosition + n >= 0 && startPosition + n < nSamples)
-                                                    {
                                                         impulseResponse[idxMicrophone + nMicrophones * (startPosition + n)] += gain * LPI[n];
-                                                    }
                                             }
                                         }
                                     }
@@ -250,36 +378,28 @@ public class RoomImpulseResponseJob : MonoBehaviour
                         }
                     }
                 }
-
-                // 'Original' high-pass filter as proposed by Allen and Berkley.
-                if (isHighPassFilter == 1)
-                {
-                    for (int idx = 0; idx < 3; idx++) { Y[idx] = 0; }
-                    for (int idx = 0; idx < nSamples; idx++)
-                    {
-                        X0 = impulseResponse[idxMicrophone + nMicrophones * idx];
-                        Y[2] = Y[1];
-                        Y[1] = Y[0];
-                        Y[0] = B1 * Y[1] + B2 * Y[2] + X0;
-                        impulseResponse[idxMicrophone + nMicrophones * idx] = Y[0] + A1 * Y[1] + R1 * Y[2];
-                    }
-                }
             }
             LPI.Dispose();
             beta.Dispose();
         }
-        private unsafe void RirGenerator(float3 receiverPos, float3 sourcePos, Room r)
+        /// <summary>
+        /// Setup for computing the room impulse response.
+        /// </summary>
+        /// <param name="receiverPos">Receiver position</param>
+        /// <param name="sourcePos">Source position</param>
+        /// <param name="r">Room</param>
+        private void RirGenerator(float3 receiverPos, float3 sourcePos, Room r)
         {
             float fs = 16000;
             int nMic = 1;
             MicrophoneType micType = MicrophoneType.Omnidirectional;
             int reflectionOrder = -1;
-            bool hp_filter = false;
             float2 micOrientation = new float2(0, 0);
             float3 room_dimensions = new float3(r.dimension.x, r.dimension.y, r.dimension.z);
             if (!r.coefficients.isReflection)
                 r.coefficients.ToReflection();
             NativeArray<float> beta = new NativeArray<float>(6, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            //float* beta = stackalloc float[6];
             beta[0] = r.coefficients.frontWall;
             beta[1] = r.coefficients.backWall;
             beta[2] = r.coefficients.leftWall;
@@ -288,7 +408,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
             beta[5] = r.coefficients.ceiling;
 
             int nSamples = impulseResponse.Length;
-            ComputeRIR(fs, receiverPos, nMic, sourcePos, room_dimensions, nSamples, beta, micType, reflectionOrder, micOrientation, hp_filter ? 1 : 0);
+            ComputeRIR(fs, receiverPos, nMic, sourcePos, room_dimensions, nSamples, ref beta, micType, reflectionOrder, micOrientation);
         }
         public void Execute()
         {
@@ -297,6 +417,7 @@ public class RoomImpulseResponseJob : MonoBehaviour
             //EasyRirGenerator(room.reverberationTime);
         }
 
+        /*
         private void EasyRirGenerator(float t60)
         {
             float A = 0.01f;
@@ -313,9 +434,13 @@ public class RoomImpulseResponseJob : MonoBehaviour
             float u2 = 1- rand.NextFloat();
             return (float)(math.sqrt(-2.0f * math.log(u1)) * math.cos(2.0f * math.PI * u2)); //random normal(0,1)
         }
-
+        */
     }
 
+    /// <summary>
+    /// Uses Sabine-Franklin's formula to calculate the reverberation time in the room.
+    /// </summary>
+    /// <returns>Reverberation time in the room</returns>
     private float CalculateReverberationTime()
     {
         float c = 343;
@@ -324,29 +449,47 @@ public class RoomImpulseResponseJob : MonoBehaviour
                       (room.coefficients.leftWall + room.coefficients.rightWall) * room.dimension.y * room.dimension.z +
                       (room.coefficients.floor + room.coefficients.ceiling) * room.dimension.x * room.dimension.z;
 
-        //foreach (GameObject o in GameObject.FindGameObjectsWithTag("Object"))
-        //    S_alpha += o.GetComponent<AcousticElementDisplay>().acousticElement.nrc * o.transform.lossyScale.x * o.transform.lossyScale.y;
-
         float reverberationTime = 24 * math.log(10.0f) * V / (c * S_alpha);
         if (reverberationTime < 0.128)
             reverberationTime = 0.128f;
         return reverberationTime;
     }
+    /// <summary>
+    /// Toggle for the <c>calculateImpulseResponse</c> flag
+    /// </summary>
     public void ToggleCalculateImpulseResponse()
     {
         this.calculateImpulseResponse = !this.calculateImpulseResponse;
     }
+    /// <summary>
+    /// Converts from absorption coefficient to reflection coefficient.
+    /// </summary>
+    /// <param name="alpha">Absorption coefficient</param>
+    /// <returns>Reflection coefficient</returns>
     private static float AbsorptionToReflection(float alpha)
     {
         return math.sqrt(math.abs(1 - alpha));
     }
+    /// <summary>
+    /// Calculates the position in cartesian coordinates relative to the back left corner in the room.
+    /// </summary>
+    /// <param name="t">Transform of the room</param>
+    /// <param name="position">Position of the object</param>
+    /// <returns>Position relative to back left corner of the room.</returns>
     private static Vector3 CalculatePositionRelativeToOrigo(Transform t, Vector3 position)
     {
         Vector3 origo = t.localPosition - (t.right * t.localScale.x / 2) - (t.up * t.localScale.y / 2) - (t.forward * t.localScale.z / 2);
         return position - origo;
     }
 
+    /// <summary>
+    /// List of all objects in the room.
+    /// </summary>
     private List<List<GameObject>> assignedAcousticElements;
+    /// <summary>
+    /// Main method for calculating the wall coefficients.
+    /// </summary>
+    /// <returns>Wall coefficients.</returns>
     private Coefficients CalculateCoefficients()
     {
         assignedAcousticElements = new List<List<GameObject>>();
@@ -377,6 +520,10 @@ public class RoomImpulseResponseJob : MonoBehaviour
 
         return c;
     }
+    /// <summary>
+    /// Assigns an element to the wall by calculating which surface is closest to the object.
+    /// </summary>
+    /// <param name="acousticElement">The element to be assigned to the wall</param>
     private void AssignElementToWall(GameObject acousticElement)
     {
         Transform frontW = GameObject.Find("Front Wall").transform;
@@ -420,31 +567,14 @@ public class RoomImpulseResponseJob : MonoBehaviour
                 default: break;
             }
         }
-        
-        /*
-        float dfw = Vector3.Distance(p, frontW.position);
-        float dbw = Vector3.Distance(p, backtW.position);
-        float dlw = Vector3.Distance(p, leftW.position);
-        float drw = Vector3.Distance(p, rightW.position);
-        float df = Vector3.Distance(p, floor.position);
-        float dc = Vector3.Distance(p, ceiling.position);
-
-        float dmin = Mathf.Min(dfw, dbw, dlw, drw, df, dc);
-
-        if (dmin == dfw)
-            assignedAcousticElements[0].Add(acousticElement);
-        else if (dmin == dbw)
-            assignedAcousticElements[1].Add(acousticElement);
-        else if (dmin == dlw)
-            assignedAcousticElements[2].Add(acousticElement);
-        else if (dmin == drw)
-            assignedAcousticElements[3].Add(acousticElement);
-        else if (dmin == df)
-            assignedAcousticElements[4].Add(acousticElement);
-        else if (dmin == dc)
-            assignedAcousticElements[5].Add(acousticElement);
-        */
     }
+
+    /// <summary>
+    /// Calculates the wall's coefficient by including all the attached acoustic elements.
+    /// </summary>
+    /// <param name="wall">The wall to calculate the new coefficient</param>
+    /// <param name="acousticElements">Assigned acoustic elements to the wall</param>
+    /// <returns></returns>
     private static float CalculateWallCoefficient(GameObject wall, List<GameObject> acousticElements)
     {
         float wallNrc = wall.GetComponent<AcousticElementDisplay>().acousticElement.nrc;
@@ -472,19 +602,23 @@ public class RoomImpulseResponseJob : MonoBehaviour
             a += acousticElementNrc * acousticElementSurface;
         }
         return (wallNrc * (wallSurface - s) + a) / wallSurface;
-        // I dont feel like the numbers add up here...
-        // return (wallNrc * wallSurface + a) / (wallSurface + s);
-
     }
 
-    public bool isHighPass;
-    public int reflections;
-
+    /// <summary>
+    /// List of impulse responses
+    /// </summary>
     public List<NativeArray<float>> impulseResponses;
+    /// <summary>
+    /// List of the job handles
+    /// </summary>
     public NativeList<JobHandle> jobHandles;
+    /// <summary>
+    /// Number of samples used for generating the impulse response
+    /// </summary>
     public int nSamples;
     private void Update()
     {
+        /// Initiate the process of calculating the room impulse response
         if (this.calculateImpulseResponse)
         {
             this.calculateImpulseResponse = false;
@@ -502,14 +636,11 @@ public class RoomImpulseResponseJob : MonoBehaviour
                 room.reverberationTime = CalculateReverberationTime();
 
             int fs = 16000;
-            int maxSamples = (int)math.pow(2, 13);
+            int maxSamples = (int)math.pow(2, 14);
             if (room.reverberationTime * fs > maxSamples)
                 nSamples = maxSamples;
             else
                 nSamples = (int)(room.reverberationTime * fs);
-
-
-            // nSamples = (int)math.round(22050 * 1.0f * room.reverberationTime);
 
 
             this.sourcePositions = new List<Vector3>(audioSources.Length);

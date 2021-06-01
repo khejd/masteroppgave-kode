@@ -2254,7 +2254,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'In this scene, you will experience an AR restaurant. The environment is
-    noisy and your main task is to submit when you feel close enough to your gest
+    noisy and your main task is to submit when you feel close enough to your guest
     in order to have an undisturbed conversation.
 
 

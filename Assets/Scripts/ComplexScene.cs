@@ -5,6 +5,9 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// The main <c>ComplexScene</c> class.
+/// </summary>
 public class ComplexScene : MonoBehaviour
 {
     public GameObject audio1Prefab;
@@ -42,6 +45,9 @@ public class ComplexScene : MonoBehaviour
         challengeDescription.text = helpText;
         StartCoroutine(FlashTextAnimation());
     }
+    /// <summary>
+    /// Adds audio to the scene.
+    /// </summary>
     public void AddAudio()
     {
         Instantiate(audio1Prefab, audio1, audio1Prefab.transform.rotation);
@@ -58,13 +64,21 @@ public class ComplexScene : MonoBehaviour
 
         r.ToggleCalculateImpulseResponse();
     }
-
+    /// <summary>
+    /// Calculates the position of the player relative to the guest.
+    /// </summary>
+    /// <param name="guestPosition">Position of the guest</param>
+    /// <param name="position">Position of the player</param>
+    /// <returns>Position relative to guest</returns>
     private static Vector3 CalculatePositionRelativeToGuest(Vector3 guestPosition, Vector3 position)
     {
         return position - guestPosition;
     }
 
     private List<Vector3> coordinates;
+    /// <summary>
+    /// Registers the coordinates of the placed marker relative to the guest.
+    /// </summary>
     public void RegisterCoordinates()
     {
         Vector3 player = GameObject.Find("AR Camera").transform.position;
@@ -83,6 +97,9 @@ public class ComplexScene : MonoBehaviour
 
     public GameObject registerDistanceButton;
     public GameObject surveyPanel;
+    /// <summary>
+    /// Changes the current task.
+    /// </summary>
     private void NextChallenge()
     {
         if (challengeNo == 1)
@@ -139,6 +156,10 @@ public class ComplexScene : MonoBehaviour
         StartCoroutine(FlashTextAnimation());
         challengeNo++;
     }
+    /// <summary>
+    /// Flashing animation for the current task text.
+    /// The animation goes from neon green and big text to smaller and white text.
+    /// </summary>
     private IEnumerator FlashTextAnimation()
     {
         Color startColor = challengeDescription.color;
@@ -165,6 +186,9 @@ public class ComplexScene : MonoBehaviour
     }
 
     private int room = 0;
+    /// <summary>
+    /// Changes the room.
+    /// </summary>
     public void ChangeRoom()
     {
         room++;
@@ -203,6 +227,10 @@ public class ComplexScene : MonoBehaviour
         r.ToggleCalculateImpulseResponse();
     }
 
+    /// <summary>
+    /// Mutes all audio in the scene.
+    /// </summary>
+    /// <param name="mute">Mute (<c>true</c>) or unmute (<c>false</c>)</param>
     public void MuteAll(bool mute = true)
     {
         foreach (GameObject a in GameObject.FindGameObjectsWithTag("Audio Source"))

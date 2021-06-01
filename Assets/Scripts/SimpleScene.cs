@@ -4,9 +4,12 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-
+/// <summary>
+/// The main <c>SimpleScene</c> class.
+/// </summary>
 public class SimpleScene : MonoBehaviour
 {
+    // GUI elements
     public GameObject addAudioSourceButton;
     public GameObject changeRoomButton;
     public GameObject nextSceneButton;
@@ -15,6 +18,10 @@ public class SimpleScene : MonoBehaviour
 
     private int challengeNo = 1;
 
+    /// <summary>
+    /// Flashing animation for the current task text.
+    /// The animation goes from neon green and big text to smaller and white text.
+    /// </summary>
     private IEnumerator FlashTextAnimation()
     {
         Color startColor = challengeDescription.color;
@@ -40,6 +47,9 @@ public class SimpleScene : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Waits for 10 seconds before changing the current task.
+    /// </summary>
     private IEnumerator WaitTimeNextChallenge()
     {
         for (int i = 10; i > 0; i--)
@@ -51,6 +61,10 @@ public class SimpleScene : MonoBehaviour
         changeRoomButton.SetActive(true);
         NextChallenge();
     }
+
+    /// <summary>
+    /// Changes the current task.
+    /// </summary>
     private void NextChallenge()
     {
         if (challengeNo == 1)
@@ -80,6 +94,10 @@ public class SimpleScene : MonoBehaviour
         challengeNo++;
     }
 
+    /// <summary>
+    /// Mutes all audio in the scene.
+    /// </summary>
+    /// <param name="mute">Mute (<c>true</c>) or unmute (<c>false</c>)</param>
     private void MuteAll(bool mute = true)
     {
         foreach (GameObject a in GameObject.FindGameObjectsWithTag("Audio Source"))

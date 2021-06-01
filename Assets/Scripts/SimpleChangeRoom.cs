@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The main <c>SimpleChangeRoom</c> class.
+/// </summary>
 public class SimpleChangeRoom : MonoBehaviour
 {
     public AcousticElement initialWall;
@@ -13,6 +16,9 @@ public class SimpleChangeRoom : MonoBehaviour
     public AcousticElement changedCeiling;
 
     private bool isInitialRoom = true;
+    /// <summary>
+    /// Changes the design of the room.
+    /// </summary>
     public void ChangeRoom()
     {
         GameObject.Find("Front Wall").GetComponent<AcousticElementDisplay>().acousticElement = isInitialRoom ? changedWall : initialWall;

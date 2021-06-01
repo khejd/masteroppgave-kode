@@ -1,6 +1,4 @@
-﻿//#define NOT_OVERLAP
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NWaves.Operations;
@@ -11,16 +9,38 @@ using Unity.Collections;
 using System.IO;
 using System.Runtime.CompilerServices;
 
+/// <summary>
+/// The main <c>ConvolutionJob</c> class.
+/// </summary>
 public class ConvolutionJob : MonoBehaviour
 {
+    /// <summary>
+    /// Array of all available audio sources in the scene.
+    /// </summary>
     private GameObject[] audioSources;
+    /// <summary>
+    /// List of all the original audio clips.
+    /// </summary>
     private List<AudioClip> originalAudioClips;
+    /// <summary>
+    /// List of all the mixed audio clips
+    /// </summary>
     private List<AudioClip> mixedAudioClips;
+    /// <summary>
+    /// List of all the audio samples
+    /// </summary>
     private List<float[]> audioSamples;
+    /// <summary>
+    /// List of the <c>NativeArrays</c> of samples
+    /// </summary>
     private List<NativeArray<float>> signals;
-
+    /// <summary>
+    /// The <c>RoomImpulseResponseJob</c> object in the scene
+    /// </summary>
     private RoomImpulseResponseJob rirScript;
-
+    /// <summary>
+    /// List of the offset samples used for controlling the start index of the mixed sound.
+    /// </summary>
     private List<int> offsetSamples;
 
     private void Start()
@@ -32,148 +52,23 @@ public class ConvolutionJob : MonoBehaviour
         signals = new List<NativeArray<float>>();
         offsetSamples = new List<int>();
     }
-#if NOT_OVERLAP
-    [BurstCompile(CompileSynchronously = true)]
-    struct MultiplyJob : IJobParallelFor
-    {
-        public NativeArray<float> array;
-        public float factor; 
-
-        public void Execute(int index)
-        {
-            array[index] *= factor;
-        }
-    }
-
-    [BurstCompile(CompileSynchronously = true)]
-    struct ConvJob : IJob
-    {
-        [ReadOnly]
-        public NativeArray<float> imp;
-        [ReadOnly]
-        public NativeArray<float> signal;
-        [WriteOnly]
-        public NativeArray<float> conv;
-        int BitReverse(int n, int bits)
-        {
-            int reversedN = n;
-            int count = bits - 1;
-
-            n >>= 1;
-            while (n > 0)
-            {
-                reversedN = (reversedN << 1) | (n & 1);
-                count--;
-                n >>= 1;
-            }
-
-            return ((reversedN << count) & ((1 << bits) - 1));
-        }
-        void FFT(NativeArray<Complex> buffer, bool inverse = false)
-        {
-            int bits = (int)math.log2(buffer.Length);
-
-            for (int j = 1; j < buffer.Length; j++)
-            {
-                int swapPos = BitReverse(j, bits);
-                if (swapPos <= j)
-                    continue;
-                Complex temp = buffer[j];
-                buffer[j] = buffer[swapPos];
-                buffer[swapPos] = temp;
-            }
-
-            // First the full length is used and 1011 value is swapped with 1101. Second if new swapPos is less than j
-            // then it means that swap was happen when j was the swapPos.
-
-            for (int N = 2; N <= buffer.Length; N <<= 1)
-            {
-                for (int i = 0; i < buffer.Length; i += N)
-                {
-                    for (int k = 0; k < N / 2; k++)
-                    {
-
-                        int evenIndex = i + k;
-                        int oddIndex = i + k + (N / 2);
-                        Complex even = buffer[evenIndex];
-                        Complex odd = buffer[oddIndex];
-
-                        float term = 2 * math.PI * k / (float)N * (inverse ? 1 : -1);
-                        Complex exp = new Complex(math.cos(term), math.sin(term)) * odd;
-
-                        buffer[evenIndex] = even + exp;
-                        buffer[oddIndex] = even - exp;
-
-                    }
-                }
-            }
-            if (inverse)
-            {
-                for (int i = 0; i < buffer.Length; i++)
-                    buffer[i] /= buffer.Length;
-            }
-        }
-        void Convolve(NativeArray<float> imp, NativeArray<float> signal)
-        {
-            int convLength = imp.Length + signal.Length - 1;
-            convLength = math.ceilpow2(convLength);
-            NativeArray<Complex> imp_fft = new NativeArray<Complex>(convLength, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            NativeArray<Complex> signal_fft = new NativeArray<Complex>(convLength, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < convLength; i++)
-            {
-                imp_fft[i] = new Complex(i >= imp.Length ? 0 : imp[i], 0);
-                signal_fft[i] = new Complex(i >= signal.Length ? 0 : signal[i], 0);
-            }
-                
-            FFT(imp_fft);
-            FFT(signal_fft);
-
-            NativeArray<Complex> convFFT = new NativeArray<Complex>(convLength, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < convLength; i++)
-                convFFT[i] = imp_fft[i] * signal_fft[i];
-
-            imp_fft.Dispose();
-            signal_fft.Dispose();
-
-            FFT(convFFT, inverse: true);
-
-            for (int i = 0; i <= imp.Length + signal.Length - 1 - 1; i++)
-                conv[i] = convFFT[i].real;
-            convFFT.Dispose();
-        }
-
-        public void Execute()
-        {
-            Convolve(imp, signal);
-        }
-        
-
-        
-        //double[] ToDoubleArray(float[] a)
-        //{
-        //    double[] d = new double[a.Length];
-        //    for (int i = 0; i < a.Length; i++)
-        //        d[i] = (double)a[i];
-        //    return d;
-        //}
-        //public void Execute()
-        //{
-        //    double[] c = Operation.Convolve(ToDoubleArray(signal.ToArray()), ToDoubleArray(imp.ToArray()));
-        //    for (int i = 0; i < c.Length; i++)
-        //        conv[i] = (float)c[i];   
-        //}
-          
-    } 
-# else      
+ 
+    /// <summary>
+    /// Struct for the convolution job
+    /// </summary>
     [BurstCompile(FloatPrecision.Low, FloatMode.Fast)]
     struct ConvOverlapAddJob : IJob
     {
-        [ReadOnly] public NativeArray<float> imp;
-        [ReadOnly] public NativeArray<float> signal;
-        public NativeArray<float> conv;
+        [ReadOnly] [NoAlias] public NativeArray<float> imp;
+        [ReadOnly] [NoAlias] public NativeArray<float> signal;
+        [NoAlias] public NativeArray<float> conv;
 
+        /// <summary>
+        /// Performs a Bit Reversal Algorithm on a postive integer for given number of bits
+        /// </summary>
+        /// <param name="n">Number of bits</param>
+        /// <param name="bits">The bits to be reversed</param>
+        /// <returns>The bit reversed</returns>
         private static int BitReverse(int n, int bits)
         {
             int reversedN = n;
@@ -189,16 +84,23 @@ public class ConvolutionJob : MonoBehaviour
 
             return ((reversedN << count) & ((1 << bits) - 1));
         }
-        private void FFT(ref NativeArray<Complex> buffer, int length, bool inverse = false)
+        /// <summary>
+        /// Implementation of fast Fourier transform.
+        /// </summary>
+        /// <param name="buffer">The signal to be transformed</param>
+        /// <param name="length">Length of the signal</param>
+        /// <param name="inverse">Compute IFFT if <c>true</c></param>
+        private void FFT([NoAlias] ref NativeArray<Complex> buffer, int length, bool inverse = false)
         {
             int bits = (int)math.log2(length);
-
+            int swapPos;
+            Complex temp;
             for (int j = 1; j < length; j++)
             {
-                int swapPos = BitReverse(j, bits);
+                swapPos = BitReverse(j, bits);
                 if (swapPos <= j)
                     continue;
-                Complex temp = buffer[j];
+                temp = buffer[j];
                 buffer[j] = buffer[swapPos];
                 buffer[swapPos] = temp;
             }
@@ -206,34 +108,54 @@ public class ConvolutionJob : MonoBehaviour
             // First the full length is used and 1011 value is swapped with 1101. Second if new swapPos is less than j
             // then it means that swap was happen when j was the swapPos.
 
+            float term1 = 2 * math.PI * (inverse ? 1 : -1);
+            float term2, term;
+            int N2, i, k;
+            int evenIndex, oddIndex;
+            Complex exp;
+
             for (int N = 2; N <= length; N <<= 1)
             {
-                for (int i = 0; i < length; i += N)
+                term2 = term1 / (float)N;
+                N2 = (N / 2);
+
+                for (i = 0; i < length; i += N)
                 {
-                    for (int k = 0; k < N / 2; k++)
+                    for (k = 0; k < N / 2; k++)
                     {
+                        evenIndex = i + k;
+                        oddIndex = i + k + N2;
 
-                        int evenIndex = i + k;
-                        int oddIndex = i + k + (N / 2);
-                        Complex even = buffer[evenIndex];
-                        Complex odd = buffer[oddIndex];
+                        term = term2 * k;
+                        exp = new Complex(math.cos(term), math.sin(term)) * buffer[oddIndex];
 
-                        float term = 2 * math.PI * k / (float)N * (inverse ? 1 : -1);
-                        Complex exp = new Complex(math.cos(term), math.sin(term)) * odd;
-
-                        buffer[evenIndex] = even + exp;
-                        buffer[oddIndex] = even - exp;
-
+                        buffer[oddIndex] = buffer[evenIndex] - exp;
+                        buffer[evenIndex] += exp;
                     }
                 }
             }
             if (inverse)
             {
-                for (int i = 0; i < length; i++)
+                for (i = 0; i < length; i++)
                     buffer[i] /= length;
             }
         }
-        private void Convolve(ref NativeArray<float> imp, ref NativeArray<float> signal)
+
+        /*
+         * The software implementation is inspired by Julius O. Smith's
+         * implementation of the Overlap-Add Convolution algorithm.
+         * 
+         * Smith, J.O. Spectral Audio Signal Processing,
+         * http://ccrma.stanford.edu/~jos/sasp/, online book,
+         * 2011 edition,
+         */
+
+        /// <summary>
+        /// Calculates the convolution of the impulse response and the signal.
+        /// </summary>
+        /// <param name="imp">Impulse response</param>
+        /// <param name="signal">Signal</param>
+        private void Convolve([NoAlias] ref NativeArray<float> imp, [NoAlias] ref NativeArray<float> signal)
         {
             int L = imp.Length;
             int Nsig = signal.Length;
@@ -249,10 +171,13 @@ public class ConvolutionJob : MonoBehaviour
             int R = M;
             int Nframes = 1 + (int)math.floor(math.abs((Nsig - M)) / R);
 
+            Complex empty = new Complex();
+            int i;
+
             //Complex* impZeroPadded = stackalloc Complex[Nfft];
             NativeArray<Complex> impZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            for (int i = 0; i < Nfft; i++)
-                impZeroPadded[i] = i < L ? new Complex(imp[i]) : new Complex();
+            for (i = 0; i < Nfft; i++)
+                impZeroPadded[i] = i < L ? new Complex(imp[i]) : empty;
             
             FFT(ref impZeroPadded, Nfft);
 
@@ -261,64 +186,42 @@ public class ConvolutionJob : MonoBehaviour
 
             NativeArray<Complex> signalZeroPadded = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             NativeArray<Complex> convFFT = new NativeArray<Complex>(Nfft, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            int startIndex, stopIndex;
+            float temp;
             for (int m = 0; m < Nframes; m++)
             {
-                int startIndex = m * R;
-                int stopIndex = math.min(m * R + M, Nsig) - 1;
-                for (int i = 0; i < Nfft; i++)
-                    signalZeroPadded[i] = startIndex + i < stopIndex ? new Complex(signal[startIndex + i]) : new Complex();
+                startIndex = m * R;
+                stopIndex = math.min(m * R + M, Nsig) - 1;
+                for (i = 0; i < Nfft; i++)
+                    signalZeroPadded[i] = startIndex + i < stopIndex ? new Complex(signal[startIndex + i]) : empty;
                 FFT(ref signalZeroPadded, Nfft);
 
-                for (int i = 0; i < Nfft; i++)
+                for (i = 0; i < Nfft; i++)
                     convFFT[i] = impZeroPadded[i] * signalZeroPadded[i];
                 FFT(ref convFFT, Nfft, inverse: true);
 
-                float temp;
-                for (int i = startIndex; i < m * R + Nfft; i++)
+                for (i = startIndex; i < m * R + Nfft; i++)
                 {
                     temp = conv[i] + convFFT[i - startIndex].real;
                     conv[i] = temp;
                 }
             }
-            impZeroPadded.Dispose();
-            signalZeroPadded.Dispose();
-            convFFT.Dispose();
+            //impZeroPadded.Dispose();
+            //signalZeroPadded.Dispose();
+            //convFFT.Dispose();
         }
-        private void OverlapAdd(ref NativeArray<float> imp, ref NativeArray<float> signal)
-        {
-            //convolution using OVERLAP-ADD
 
-            // get length that arrays will be zero-padded to
-            int K = (int)math.pow(2, math.ceil(math.log(imp.Length + signal.Length - 1) / math.log(2)));
-
-            //create temporary (zero padded to K) arrays
-            NativeArray<Complex> ir_pad = new NativeArray<Complex>(K, Allocator.Temp);
-            for (int i = 0; i < imp.Length; ++i)
-                ir_pad[i] = new Complex(imp[i]);
-            NativeArray<Complex> data_pad = new NativeArray<Complex>(K, Allocator.Temp);
-            for (int i = 0; i < signal.Length; ++i)
-                data_pad[i] = new Complex(signal[i]);
-
-            //FFT 
-            FFT(ref data_pad, K);
-            FFT(ref ir_pad, K);
-            //convolution
-            NativeArray<Complex> ifft = new NativeArray<Complex>(K, Allocator.Temp);
-            for (int i = 0; i < ifft.Length; ++i)
-                ifft[i] = data_pad[i] * ir_pad[i] * K;
-            FFT(ref ifft, K, true);
-
-            for (int i = 0; i < conv.Length; ++i)
-                conv[i] = ifft[i].real;
-        }
         public void Execute()
         {
             Convolve(ref imp, ref signal);
-            //OverlapAdd(ref imp, ref signal);
         }
     }
-# endif
 
+    /// <summary>
+    /// Adds the audio source clip and initiates a generation of impulse responses.
+    /// </summary>
+    /// <param name="c">The audio clip</param>
     public void AddAudioSource(AudioClip c)
     {
         audioSources = GameObject.FindGameObjectsWithTag("Audio Source");
@@ -359,27 +262,29 @@ public class ConvolutionJob : MonoBehaviour
 
     private void Update()
     {
+        /// Initiate the process of convolving with the impulse responses.
         if (rirScript.newImpulseResponse)
         {
             rirScript.newImpulseResponse = false;
 
             int nAudioSources = audioSources.Length;
             
-            //List<NativeArray<float>> signals = new List<NativeArray<float>>(nAudioSources);
             List<NativeArray<float>> convs = new List<NativeArray<float>>(nAudioSources);
 
             NativeList<JobHandle> jobHandles = new NativeList<JobHandle>(nAudioSources, Allocator.Temp);
-            
+
+            /// Used for printing a room impulse response to file.
             /*
-            string s = "";
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+            
             rirScript.jobHandles[0].Complete();
             float[] imp = rirScript.impulseResponses[0].ToArray();
             foreach (float f in imp)
             {
                 string temp = f.ToString().Replace(',', '.');
-                s += temp + ";";
+                s.Append(temp).Append(";");
             }
-            File.WriteAllText(Application.dataPath + "/output_dir.txt", s);
+            File.WriteAllText(Application.dataPath + "/output_plot.txt", s.ToString());
             */
 
             for (int i = 0; i < nAudioSources; i++)
@@ -392,21 +297,13 @@ public class ConvolutionJob : MonoBehaviour
             {
                 rirScript.jobHandles[i].Complete();
 
-#if NOT_OVERLAP
-                ConvJob job = new ConvJob()
-                {
-                    imp = rirScript.impulseResponses[i],
-                    signal = signals[i],
-                    conv = convs[i],
-                };
-#else
                 ConvOverlapAddJob job = new ConvOverlapAddJob()
                 {
                     imp = rirScript.impulseResponses[i],
                     signal = signals[i],
                     conv = convs[i],
                 };
-#endif
+
                 JobHandle jobHandle = job.Schedule();
                 jobHandles.Add(jobHandle);
             }
@@ -425,15 +322,6 @@ public class ConvolutionJob : MonoBehaviour
                 for (int j = 0; j < numSamples; j++)
                     mixedAudio[j] *= multiplicationFactor;
                 
-                /*MultiplyJob multiplyJob = new MultiplyJob()
-                {
-                    array = convs[i],
-                    factor = multiplicationFactor
-                };
-
-                JobHandle multiplyHandle = multiplyJob.Schedule(numSamples, 64);
-                multiplyHandle.Complete();
-                */
                 AudioClip mixedAudioClip = AudioClip.Create("MixedAudioClip", numSamples, originalAudioClips[i].channels, originalAudioClips[i].frequency, false);
                 mixedAudioClips[i] = mixedAudioClip; 
 
@@ -454,6 +342,7 @@ public class ConvolutionJob : MonoBehaviour
         }
     }
 
+    /*
     public bool isAudioEffect = true;
     public void ToggleAudioEffect()
     {
@@ -466,67 +355,112 @@ public class ConvolutionJob : MonoBehaviour
         }
 
     }
-
+    */
     private void OnDisable()
     {
         for (int i = 0; i < signals.Count; i++)
             signals[i].Dispose();
     }
+    /// <summary>
+    /// Struct for handling complex numbers
+    /// </summary>
     public struct Complex
     {
         public float real;
         public float imag;
-        //Empty constructor
- 
+
+        /// <summary>
+        /// Empty constructor
+        /// </summary>
+        /// <param name="real">Real part</param>
+        /// <param name="imag">Imaginary part</param>
         public Complex(float real=0.0f, float imag=0.0f)
         {
             this.real = real;
             this.imag = imag;
         }
 
-        //Convert from polar to rectangular
+        /// <summary>
+        /// Converts from polar form to rectangular
+        /// </summary>
+        /// <param name="r">Radius</param>
+        /// <param name="radians">Radians</param>
+        /// <returns>Rectangular form</returns>
         public static Complex FromPolar(float r, float radians)
         {
             Complex data = new Complex(r * math.cos(radians), r * math.sin(radians));
             return data;
         }
-        //Override addition operator
+
+        /// <summary>
+        /// Override addition operator
+        /// </summary>
+        /// <param name="a">First complex number</param>
+        /// <param name="b">Second complex number</param>
+        /// <returns>Complex number <c>a</c> + complex number <c>b</c></returns>
         public static Complex operator +(Complex a, Complex b)
         {
             Complex data = new Complex(a.real + b.real, a.imag + b.imag);
             return data;
         }
-        //Override subtraction operator
+        /// <summary>
+        /// Override subtraction operator
+        /// </summary>
+        /// <param name="a">First complex number</param>
+        /// <param name="b">Second complex number</param>
+        /// <returns>Complex number <c>a</c> - complex number <c>b</c></returns>
         public static Complex operator -(Complex a, Complex b)
         {
             Complex data = new Complex(a.real - b.real, a.imag - b.imag);
             return data;
         }
-        //Override multiplication operator
+        /// <summary>
+        /// Override multiplication operator
+        /// </summary>
+        /// <param name="a">First complex number</param>
+        /// <param name="b">Second complex number</param>
+        /// <returns>Complex number <c>a</c> * complex number <c>b</c></returns>
         public static Complex operator *(Complex a, Complex b)
         {
             Complex data = new Complex((a.real * b.real) - (a.imag * b.imag), (a.real * b.imag + (a.imag * b.real)));
             return data;
         }
-        //Override multiplication operator
+        /// <summary>
+        /// Override multiplication operator
+        /// </summary>
+        /// <param name="a">Complex number</param>
+        /// <param name="b">Float</param>
+        /// <returns>Complex number <c>a</c> * float <c>b</c></returns>
         public static Complex operator *(Complex a, float b)
         {
             Complex data = new Complex(a.real * b, a.imag * b);
             return data;
         }
-        //Override division operator
+        /// <summary>
+        /// Override division operator
+        /// </summary>
+        /// <param name="a">First complex number</param>
+        /// <param name="b">Second complex number</param>
+        /// <returns>Complex number <c>a</c> / complex number <c>b</c></returns>
         public static Complex operator /(Complex a, Complex b)
         {
             Complex data = new Complex(((a.real * b.real) + (a.imag * b.imag)) / (math.pow(b.real, 2) + math.pow(b.imag, 2)), (a.imag * b.real - (a.real * b.imag)) / (math.pow(b.real, 2) + math.pow(b.imag, 2)));
             return data;
         }
-        //Override division operator
+        /// <summary>
+        /// Override division operator
+        /// </summary>
+        /// <param name="a">Complex number</param>
+        /// <param name="b">Float</param>
+        /// <returns>Complex number <c>a</c> / float <c>b</c></returns>
         public static Complex operator /(Complex a, int b)
         {
             Complex data = new Complex(a.real / b, a.imag / b);
             return data;
         }
-        //Return magnitude of complex number
+        /// <summary>
+        /// Returns magnitude of complex number
+        /// </summary>
         public float Magnitude
         {
             get
@@ -534,6 +468,9 @@ public class ConvolutionJob : MonoBehaviour
                 return math.sqrt(math.pow(real, 2) + math.pow(imag, 2));
             }
         }
+        /// <summary>
+        /// Returns the phase of complex number
+        /// </summary>
         public float Phase
         {
             get

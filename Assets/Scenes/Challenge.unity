@@ -1588,7 +1588,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 170456260}
   m_Template: {fileID: 565337166}
   m_CaptionText: {fileID: 933103847}
@@ -1607,18 +1607,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &170456260
 MonoBehaviour:
@@ -2986,7 +2975,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 299744775}
   m_Template: {fileID: 989999144}
   m_CaptionText: {fileID: 2076640717}
@@ -3007,18 +2996,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &299744775
 MonoBehaviour:
@@ -3585,11 +3563,11 @@ RectTransform:
   - {fileID: 1209695685}
   - {fileID: 1201970727}
   - {fileID: 1577749884}
-  - {fileID: 445128935}
   - {fileID: 1847922341}
   - {fileID: 1335704948}
   - {fileID: 676762404}
   - {fileID: 1859057752}
+  - {fileID: 445128935}
   - {fileID: 502279672}
   - {fileID: 135875623}
   - {fileID: 116585290}
@@ -4598,7 +4576,7 @@ RectTransform:
   m_Children:
   - {fileID: 190190370}
   m_Father: {fileID: 324578399}
-  m_RootOrder: 3
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -4964,6 +4942,12 @@ MonoBehaviour:
   reverberationTime: {fileID: 297332583}
   challengeMaterial: {fileID: 11400000, guid: 5b877757ecf1ead4e9b821dea56c5f96, type: 2}
   surveyPanel: {fileID: 502279671}
+  FW: {fileID: 1328686479}
+  BW: {fileID: 1312279251}
+  LW: {fileID: 299744774}
+  RW: {fileID: 596856079}
+  F: {fileID: 1686912282}
+  C: {fileID: 170456259}
   challengeDescription: {fileID: 68988425}
 --- !u!1 &490623413
 GameObject:
@@ -5843,7 +5827,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 596856080}
   m_Template: {fileID: 183510165}
   m_CaptionText: {fileID: 234443418}
@@ -5864,18 +5848,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &596856080
 MonoBehaviour:
@@ -6801,7 +6774,7 @@ RectTransform:
   m_Children:
   - {fileID: 906494338}
   m_Father: {fileID: 324578399}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -6853,6 +6826,17 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1859057753}
         m_MethodName: ToggleObjectActive
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 486273433}
+        m_MethodName: SetKeepGoingFalse
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10140,18 +10124,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &1312279252
 MonoBehaviour:
@@ -10290,18 +10263,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &1328686480
 MonoBehaviour:
@@ -10549,7 +10511,7 @@ RectTransform:
   m_Children:
   - {fileID: 362417628}
   m_Father: {fileID: 324578399}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -12137,7 +12099,18 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 445128938}
-        m_MethodName: ToggleObjectActive
+        m_MethodName: SetObjectActive
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 486273433}
+        m_MethodName: SetKeepGoingFalse
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12675,7 +12648,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1686912283}
   m_Template: {fileID: 1714120695}
   m_CaptionText: {fileID: 1088781673}
@@ -12698,18 +12671,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 395233332}
-        m_MethodName: ToggleCalculateImpulseResponse
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &1686912283
 MonoBehaviour:
@@ -13589,7 +13551,7 @@ RectTransform:
   m_Children:
   - {fileID: 1726070010}
   m_Father: {fileID: 324578399}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -14139,7 +14101,7 @@ RectTransform:
   - {fileID: 628951951}
   - {fileID: 597208214}
   m_Father: {fileID: 324578399}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}

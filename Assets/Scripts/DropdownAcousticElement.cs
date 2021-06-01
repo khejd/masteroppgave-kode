@@ -3,8 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using TMPro;
+
+/// <summary>
+/// The main <c>DropdownAcousticElement</c> class.
+/// Contains all methods for changing acoustic elements on surfaces.
+/// </summary>
 public class DropdownAcousticElement : MonoBehaviour
 {
+    /* 
+     * The optional materials in the dropdown
+     */
+  
     public AcousticElement woodPanel;
     public AcousticElement plaster;
     public AcousticElement marble;
@@ -15,6 +24,9 @@ public class DropdownAcousticElement : MonoBehaviour
     public AcousticElement metal;
     public AcousticElement acousticRoofPanel;
 
+    /* 
+     * The dropdowns
+     */
     private TMP_Dropdown frontWallDropdown;
     private TMP_Dropdown backWallDropdown;
     private TMP_Dropdown leftWallDropdown;
@@ -22,6 +34,9 @@ public class DropdownAcousticElement : MonoBehaviour
     private TMP_Dropdown floorDropdown;
     private TMP_Dropdown ceilingDropdown;
 
+    /// <summary>
+    /// Finds and assigns the dropdowns to event listeners.
+    /// </summary>
     private void Awake()
     {
         List<TMP_Dropdown> dropdowns = Resources.FindObjectsOfTypeAll<TMP_Dropdown>().ToList();
@@ -42,6 +57,11 @@ public class DropdownAcousticElement : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Changes the wall element of a wall given by its name.
+    /// </summary>
+    /// <param name="wallName">Name of the wall</param>
+    /// <param name="value">Value of the element in the dropdown</param>
     private void ChangeWallElement(string wallName, int value)
     {
         switch (value)
@@ -63,6 +83,9 @@ public class DropdownAcousticElement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Changes the floor element.
+    /// </summary>
     private void ChangeFloorElement()
     {
         switch (floorDropdown.value)
@@ -87,6 +110,9 @@ public class DropdownAcousticElement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Changes the ceiling element.
+    /// </summary>
     private void ChangeCeilingElement()
     {
         switch (ceilingDropdown.value)
